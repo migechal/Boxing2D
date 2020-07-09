@@ -1,8 +1,0 @@
-COMPILER=g++
-PRELAUNCH=clear && 
-FLAGS= -g -o
-FILE=main.cpp
-EXEC=run
-PFLAGS= -lSDL2
-all:
-	$(PRELAUNCH)$(COMPILER) $(FLAGS) $(EXEC) $(FILE) $(PFLAGS)
