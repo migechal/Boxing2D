@@ -50,7 +50,7 @@ bool BMPloader(SDL_Surface *Image, char file[]) {
     cout << "Err: '" << Image
          << "' could not be loaded. (Check if correct path)" << endl
          << "Shutdown? (y/n):   " << flush;
-    char q = NULL;
+    char q = ' ';
     cin >> q;
     if (q == 'y') {
       cout << endl << "Bye!" << endl;
@@ -140,6 +140,7 @@ int main() {
       switch (p1action) {
         case 0:
           CHECK_RESULT(!SDL_BlitSurface(player1F1, NULL, screen, &Player1pos));
+          ;
         case 1:
           CHECK_RESULT(!SDL_BlitSurface(player1F2, NULL, screen, &Player1pos));
       }
