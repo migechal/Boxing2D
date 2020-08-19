@@ -53,12 +53,12 @@ SDL_Surface *BMPloader(string file) {
   CHECK_RESULT(bp);
   return bp;
 }
-Mix_Music *loadMusic(string file) {
-  // Load Music
-  Mix_Music *lm = Mix_LoadMUS(file.c_str());
-  CHECK_RESULT(lm);
-  return lm;
-}
+// Mix_Music *loadMusic(string file) {
+//   // Load Music
+//   Mix_Music *lm = Mix_LoadMUS(file.c_str());
+//   CHECK_RESULT(lm);
+//   return lm;
+// }
 int mainmenu(SDL_Window *window, SDL_Surface *screen, string path) {
   bool running = true;
   SDL_Surface *MM = BMPloader(path + "assets/MainMenu.bmp");

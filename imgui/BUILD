@@ -56,5 +56,8 @@ cc_binary(
         "REENTRANT",
     ],
     linkopts = ["-lSDL2 -lGL -ldl -lSDL2_mixer"],
-    deps = [":imgui_lib"],
+    deps = [
+        ":func_lib",
+        ":imgui_lib",
+    ],
 )
