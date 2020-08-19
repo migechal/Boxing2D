@@ -4,5 +4,5 @@ Requires SDL-2 can be installed from https://www.libsdl.org/download-2.0.php Pro
 
 Bazel build \\main:game
 
-Contributions: 
+Contributers: 
     No one just me.
