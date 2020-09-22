@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
 #include <bits/stdc++.h>
 #include <time.h>
 
@@ -22,7 +21,7 @@
 #endif
 
 using namespace std;
-
+#define PUNCHFRAME 60
 #define movment 10
 #define dist 360
 #define hd 5
@@ -37,67 +36,30 @@ using namespace std;
       exit(-2);                                                             \
     }                                                                       \
   }
-//*
-//*
-//*
-//*
-//*
-//!
-const int JOYSTICK_DEAD_ZONE = 8000;
-//!
-Mix_Music *music;
-SDL_Surface *screen = nullptr;
-SDL_Surface *background = nullptr;
-SDL_Surface *player1F1 = nullptr;
-SDL_Surface *player1F2 = nullptr;
-SDL_Surface *player1F3 = nullptr;
-SDL_Surface *player2F1 = nullptr;
-SDL_Surface *player2F2 = nullptr;
-SDL_Surface *player2F3 = nullptr;
-vector<SDL_Surface *> KOP1;
-vector<SDL_Surface *> KOP2;
-//!
-int leftpos = 0;
-int rightpos = 0;
-int leftpos2 = 0;
-int rightpos2 = 0;
-//!
-int player1hp = 100;
-int player2hp = 100;
-//!
-bool leftBut = false;
-bool rightBut = false;
-bool downBut = false;
-bool leftBut2 = false;
-bool rightBut2 = false;
-bool downBut2 = false;
-//!
-int Player1Multiplier = 1;
-int Player2Multiplier = 1;
-//!
-SDL_Rect Player1pos;
-SDL_Rect Player2pos;
-//!
-int p1action = 0;
-int p2action = 0;
-//!
-time_t punchclock1;
-time_t punchclock2;
-//!
-time_t blockclock1;
-time_t blockclock2;
-//!
+
 //
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
+  bool debug = false;
+  cout << argc << endl;
+  if (argc > 1) {
+    char ask = ' ';
+    cout << "Welcome To Boxing2D, Created By Mikhail Chalakov. You're Running "
+            "This In Debug Mode, This Could Lead To A Bit Of Performance "
+            "Issues, Are You Sure (y,n):   "
+         << flush;
+    cin >> ask;
+    debug = ask == 'y' ? true : false;
+    ClearScreen();
+  }
   string pathtoassets;
   string pathtosettings = pathtoassets = argv[0];
   for (size_t i = pathtosettings.size() - 1; pathtosettings[i] != '/'; i--) {
     pathtosettings.pop_back();
   }
-  pathtosettings += "game.runfiles/__main__/main/settings/config.json";
-  pathtoassets += "game.runfiles/__main__/main/";
+  pathtoassets += ".runfiles/__main__/main/";
   //* Init
   // CHECK_RESULT(!Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096));
+  createrect(Player1pos, Player2pos);
   Point2D window_size;
   getSettings(window_size, pathtoassets + "settings/config.json");
   SDL_Window *window = SDL_CreateWindow("Boxing Game", SDL_WINDOWPOS_CENTERED,
@@ -115,17 +77,22 @@ int main(int argc, char **argv) {
   player2F1 = BMPloader(pathtoassets + "assets/RED/Idle/Red_Idle.bmp");
   player2F2 = BMPloader(pathtoassets + "assets/RED/PunchRight/Punch-4.bmp");
   player2F3 = BMPloader(pathtoassets + "assets/RED/Blocking/Blocking-0.bmp");
-
-  //!
-  //!
-  //! Game loop
-  //!
-  //!
+  const int SecondsBetweenPunch = 1;
   const Uint32 MaxFPS = 60;
   const Uint32 FrameTime = (1000.0 / MaxFPS);
+  //!
+  //!
+  //!
+  //* Game Loop
+  //!
+  //!
+  //!
+  long pc1 = time(&punchclock1);
+  long pc2 = time(&punchclock2);
+  long pb1 = time(&blockclock1);
+  long pb2 = time(&blockclock2);
   SDL_Event e;
   bool gameLoop = true;
-  //* Game Loop
   while (gameLoop) {
     auto startFrameTime = SDL_GetTicks();  //* Update the window
     SDL_UpdateWindowSurface(window);
@@ -136,9 +103,8 @@ int main(int argc, char **argv) {
         gameLoop = false;
       }
     }
-    //* Blit the basic image
-    const Uint8 *KeyboardState = SDL_GetKeyboardState(NULL);
     //* Movement
+    const Uint8 *KeyboardState = SDL_GetKeyboardState(NULL);
     leftBut = KeyboardState[SDL_SCANCODE_A];
     rightBut = KeyboardState[SDL_SCANCODE_D];
     rightBut2 = KeyboardState[SDL_SCANCODE_RIGHT];
@@ -162,7 +128,12 @@ int main(int argc, char **argv) {
       downBut2 = true;
       p2action = 2;
     }
-
+    if (leftBut || rightBut) {
+      p1action = 0;
+    }
+    if (leftBut2 || rightBut2) {
+      p2action = 0;
+    }
     //* Update the positions of the players
     //
     //* Player one:
@@ -200,23 +171,44 @@ int main(int argc, char **argv) {
     if (player2hp <= 0) {
       p2action = 3;
     }
-    //* Update the player action phase
+    //
+    // Clear Game Screen
+    //
+    SDL_BlitSurface(background, NULL, screen, NULL);
+    //
+    // Clear Game Screen END PLAYER DRAW START
+    //
+    if (debug) {
+      cout << "\033[1;31m[+]   \033[0m Time Between Player One Punch Is:  "
+           << time(&punchclock1) - pc1 << endl;
+    }
+
     switch (p1action) {
       case 0:
+        // Player One Normal
         CHECK_RESULT(!SDL_BlitSurface(player1F1, NULL, screen, &Player1pos));
         break;
       case 1:
-        CHECK_RESULT(!SDL_BlitSurface(player1F2, NULL, screen, &Player1pos));
-        if (Player1pos.x + dist + 10 >= Player2pos.x) {
-          player2hp -= hd;
+        // Player One Punching
+        if (time(&punchclock1) - pc1 >= SecondsBetweenPunch) {
+          CHECK_RESULT(!SDL_BlitSurface(player1F1, NULL, screen, &Player1pos));
+          pc1 = time(&punchclock1);
+          if (Player1pos.x + dist + 10 >= Player2pos.x) {
+            player2hp -= hd;
+            if (debug) {
+              cout << "\033[1;31m[+]   \033[0m Player Two Health Is:  "
+                   << player2hp << endl;
+            }
+          }
         }
         break;
       case 2:
+        // Player One blocking
         CHECK_RESULT(!SDL_BlitSurface(player1F3, NULL, screen, &Player1pos));
         break;
       case 3:
+        // Player One KO
         for (int i = 0; i != 9; i++) {
-          CHECK_RESULT(!SDL_BlitSurface(background, NULL, screen, NULL));
           CHECK_RESULT(!SDL_BlitSurface(KOP1[i], NULL, screen, &Player1pos));
           CHECK_RESULT(!SDL_BlitSurface(player2F1, NULL, screen, &Player2pos));
           CHECK_RESULT(!SDL_UpdateWindowSurface(window));
@@ -226,15 +218,33 @@ int main(int argc, char **argv) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Winner",
                                  "Red Is The Winner", window);
         // TODO: CHANGE THIS TO GOTO TITLE SCREEN
+      default:;
+    }
+    //
+    //
+    //
+    //
+    //
+    //
+    if (debug) {
+      cout << "\033[1;31m[+]   \033[0m Time Between Player Two Punch Is:  "
+           << time(&punchclock2) - pc2 << endl;
     }
     switch (p2action) {
       case 0:
         CHECK_RESULT(!SDL_BlitSurface(player2F1, NULL, screen, &Player2pos));
         break;
       case 1:
-        CHECK_RESULT(!SDL_BlitSurface(player2F2, NULL, screen, &Player2pos));
-        if (Player2pos.x - dist - 10 == Player1pos.x) {
-          player1hp -= hd;
+        if (time(&punchclock2) - pc2 >= SecondsBetweenPunch) {
+          CHECK_RESULT(!SDL_BlitSurface(player2F2, NULL, screen, &Player2pos));
+          if (Player2pos.x + dist + 10 >= Player2pos.x) {
+            player2hp -= hd;
+            if (debug) {
+              cout << "\033[1;31m[+]   \033[0m Player One Health Is:  "
+                   << player1hp << endl;
+            }
+          }
+          pc2 = time(&punchclock2);
         }
         break;
       case 2:
@@ -242,7 +252,6 @@ int main(int argc, char **argv) {
         break;
       case 3:
         for (int i = 0; i != 9; i++) {
-          CHECK_RESULT(!SDL_BlitSurface(background, NULL, screen, NULL));
           CHECK_RESULT(!SDL_BlitSurface(KOP2[i], NULL, screen, &Player2pos));
           CHECK_RESULT(!SDL_BlitSurface(player1F1, NULL, screen, &Player1pos));
           CHECK_RESULT(!SDL_UpdateWindowSurface(window));
@@ -250,7 +259,7 @@ int main(int argc, char **argv) {
         }
         SDL_Delay(1000);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Winner",
-                                 "Blue Is The Winner", window);
+                                 "Red Is The Winner", window);
         // TODO: CHANGE THIS TO GOTO TITLE SCREEN
     }
     //* Clean up the frame
@@ -261,8 +270,10 @@ int main(int argc, char **argv) {
     if (frameDuration < FrameTime) {
       SDL_Delay(FrameTime - frameDuration);
     }
-    p2action = 0;
-    p1action = 0;
   }
-  return 0;
+  //
+  //
+  // GAME LOOP END
+  //
+  //
 }

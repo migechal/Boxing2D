@@ -19,7 +19,7 @@ cc_binary(
     srcs = [
         "main.cpp",
     ],
-    args = ["menu"],
+    args = ["debug-mode"],
     copts = [
         "-std=c++14",
         "-Wformat",

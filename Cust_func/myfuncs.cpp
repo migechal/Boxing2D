@@ -5,6 +5,49 @@
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <vector>
+using namespace std;
+Mix_Music *music;
+SDL_Surface *screen = nullptr;
+SDL_Surface *background = nullptr;
+SDL_Surface *player1F1 = nullptr;
+SDL_Surface *player1F2 = nullptr;
+SDL_Surface *player1F3 = nullptr;
+SDL_Surface *player2F1 = nullptr;
+SDL_Surface *player2F2 = nullptr;
+SDL_Surface *player2F3 = nullptr;
+vector<SDL_Surface *> KOP1;
+vector<SDL_Surface *> KOP2;
+//!
+int leftpos = 0;
+int rightpos = 0;
+int leftpos2 = 0;
+int rightpos2 = 0;
+//!
+int player1hp = 100;
+int player2hp = 100;
+//!
+bool leftBut = false;
+bool rightBut = false;
+bool downBut = false;
+bool leftBut2 = false;
+bool rightBut2 = false;
+bool downBut2 = false;
+//!
+int Player1Multiplier = 1;
+int Player2Multiplier = 1;
+//!
+SDL_Rect Player1pos;
+SDL_Rect Player2pos;
+//!
+int p1action = 0;
+int p2action = 0;
+//!
+time_t punchclock1 = 0;
+time_t punchclock2 = 0;
+time_t blockclock1 = 0;
+time_t blockclock2 = 0;
+//!
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
     auto res = fnc;                                                         \
@@ -21,6 +64,11 @@ struct Point2D {
   int x;
   int y;
 };
+void ClearScreen() {
+  for (int i = 0; i < 100; i++) {
+    cout << endl;
+  }
+}
 void createrect(SDL_Rect &Player1pos, SDL_Rect &Player2pos) {
   //! Player 1 position
   Player1pos.x = 0;
