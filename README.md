@@ -7,5 +7,7 @@ Contributers:
     No one just me (Mikhail Chalakov).
 
 
-
+> Only works on Linux for now
 `bazel build \\main:game`
+`cp bazel-bin/main/game .`
+`./game`
