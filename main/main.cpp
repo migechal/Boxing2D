@@ -17,7 +17,6 @@
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_widgets.cpp"
 #endif
-
 using namespace std;
 #define PUNCHFRAME 60
 #define movment 10
@@ -73,6 +72,21 @@ class InitPhase {
   }
 
  public:
+  string GetResourcePath(string applicationPath) {
+    auto envResourcePath = getenv("PATH_TO_2DBOXING_RESOURCES");
+    cout << "envResourcePath:  " << envResourcePath << endl;
+    if (envResourcePath != nullptr) {
+      applicationPath.assign(envResourcePath);
+      if (applicationPath.back() != '/') {
+        applicationPath += "/";
+      }
+    } else {
+      while (applicationPath.back() != '/') {
+        applicationPath.pop_back();
+      }
+    }
+    return applicationPath + "main/";
+  }
   void LoadAllFiles(string path, Player &p1, Player &p2) {
     background = BMPloader(path + "assets/Ring.bmp");
     p1.F1 = BMPloader(path + "assets/BLUE/Idle/Blue_Idle.bmp");
@@ -87,21 +101,6 @@ class InitPhase {
       p2.KOP.push_back(
           BMPloader((path + "assets/RED/KO/KO-" + to_string(i) + ".bmp")));
     }
-  }
-
-  string GetResourcePath(string applicationPath) {
-    auto envResourcePath = getenv("PATH_TO_2DBOXING_RESOURCES");
-    if (envResourcePath != nullptr) {
-      applicationPath.assign(envResourcePath);
-      if (applicationPath.back() != '/') {
-        applicationPath += "/";
-      }
-    } else {
-      while (applicationPath.back() != '/') {
-        applicationPath.pop_back();
-      }
-    }
-    return applicationPath + "main/";
   }
 
   Point2D getSettings(string path) {
@@ -134,7 +133,7 @@ class DebugMode {
   int returnPunchIT(Player player) { return player.PT; }
   int returnBlockIT(Player player) { return player.BT; }
   int returnCurrentDMG(Player player) { return player.CTMG; }
-} DM;
+};
 
 class GameBase {
   int ChangeHP(int &PlayerHP, int addition = -5) {
@@ -158,8 +157,8 @@ class GameBase {
   void clearScreen(SDL_Surface *screen) {
     CHECK_RESULT(!SDL_BlitSurface(background, NULL, screen, NULL));
   }
-  void updateScreen(SDL_Window *window) { SDL_UpdateWindowSurface(window); }
-  void PrintPlayer(Player player, int F, SDL_Window *window, Player nmp = {0}) {
+  void updateScreen(SDL_Window *window) { updateWindow(window); }
+  void PrintPlayer(Player player, int F, SDL_Window *window, Player nmp) {
     switch (F) {
       case 1:
         SDL_BlitSurface(player.F1, NULL, screen, &player.pos);
@@ -176,6 +175,7 @@ class GameBase {
     }
   }
 } GB;
+
 class input {
   const Uint8 *KeyboardState = SDL_GetKeyboardState(NULL);
 
