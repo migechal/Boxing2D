@@ -19,8 +19,8 @@
 #endif
 using namespace std;
 #define PUNCHFRAME 60
-#define movment 10
-#define dist 360
+#define movement 5
+#define dist 160
 #define hd 5
 
 #define CHECK_RESULT(fnc)                                                   \
@@ -60,6 +60,7 @@ struct Player {
   SDL_Surface *F1;
   SDL_Surface *F2;
   SDL_Surface *F3;
+  bool punch;
   SDL_Rect pos;
   vector<SDL_Surface *> KOP;
 };
@@ -73,8 +74,9 @@ class InitPhase {
 
  public:
   string GetResourcePath(string applicationPath) {
-    auto envResourcePath = getenv("PATH_TO_2DBOXING_RESOURCES");
-    cout << "envResourcePath:  " << envResourcePath << endl;
+    auto envResourcePath = getenv("PATH_TO_BOXING2D_RESOURCES");
+    cout << "envResourcePath:  " << (envResourcePath ? envResourcePath : "NULL")
+         << endl;
     if (envResourcePath != nullptr) {
       applicationPath.assign(envResourcePath);
       if (applicationPath.back() != '/') {
@@ -85,26 +87,27 @@ class InitPhase {
         applicationPath.pop_back();
       }
     }
-    return applicationPath + "main/";
+    return applicationPath + "";
   }
   void LoadAllFiles(string path, Player &p1, Player &p2) {
-    background = BMPloader(path + "assets/Ring.bmp");
-    p1.F1 = BMPloader(path + "assets/BLUE/Idle/Blue_Idle.bmp");
-    p1.F2 = BMPloader(path + "assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
-    p1.F3 = BMPloader(path + "assets/BLUE/Blocking/Blocking.bmp");
-    p2.F1 = BMPloader(path + "assets/RED/Idle/Red_Idle.bmp");
-    p2.F2 = BMPloader(path + "assets/RED/PunchRight/Punch-4.bmp");
-    p2.F3 = BMPloader(path + "assets/RED/Blocking/Blocking-0.bmp");
+    background = BMPloader(path + "main/assets/Ring.bmp");
+    p1.F1 = BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
+    p1.F2 =
+        BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
+    p1.F3 = BMPloader(path + "main/assets/BLUE/Blocking/Blocking.bmp");
+    p2.F1 = BMPloader(path + "main/assets/RED/Idle/Red_Idle.bmp");
+    p2.F2 = BMPloader(path + "main/assets/RED/PunchRight/Punch-4.bmp");
+    p2.F3 = BMPloader(path + "main/assets/RED/Blocking/Blocking-0.bmp");
     for (auto i = 0; i < 10; i++) {
       p1.KOP.push_back(
-          BMPloader(path + "assets/BLUE/KO/KO-" + to_string(i) + ".bmp"));
+          BMPloader(path + "main/assets/BLUE/KO/KO-" + to_string(i) + ".bmp"));
       p2.KOP.push_back(
-          BMPloader((path + "assets/RED/KO/KO-" + to_string(i) + ".bmp")));
+          BMPloader((path + "main/assets/RED/KO/KO-" + to_string(i) + ".bmp")));
     }
   }
 
   Point2D getSettings(string path) {
-    string pathSettings = path + "settings/config.json";
+    string pathSettings = path + "main/settings/config.json";
     std::cout << "getSettings from " << pathSettings << std::endl;
 
     Point2D P2D;
@@ -133,7 +136,8 @@ class DebugMode {
   int returnPunchIT(Player player) { return player.PT; }
   int returnBlockIT(Player player) { return player.BT; }
   int returnCurrentDMG(Player player) { return player.CTMG; }
-};
+  void printMSG(string msg) { cout << "\033[1;31m[+]  \033[0m" << msg << endl; }
+} DBM;
 
 class GameBase {
   int ChangeHP(int &PlayerHP, int addition = -5) {
@@ -143,22 +147,27 @@ class GameBase {
   void updateWindow(SDL_Window *window) {
     CHECK_RESULT(!SDL_UpdateWindowSurface(window));
   }
-  void printKO(Player KOd, Player player, SDL_Surface *screen,
-               SDL_Window *window) {
+  void printKO(Player KOd, SDL_Surface *screen, SDL_Window *window) {
     for (int i = 0; i != 9; i++) {
       CHECK_RESULT(!SDL_BlitSurface(KOd.KOP[i], NULL, screen, &KOd.pos));
-      CHECK_RESULT(!SDL_BlitSurface(player.F1, NULL, screen, &KOd.pos));
       updateWindow(window);
       SDL_Delay(60);
     }
   }
 
  public:
+  void clearTerm(int lines) {
+    for (int i = 0; i < lines; i++) {
+      cout << endl;
+    }
+  }
+
   void clearScreen(SDL_Surface *screen) {
     CHECK_RESULT(!SDL_BlitSurface(background, NULL, screen, NULL));
   }
   void updateScreen(SDL_Window *window) { updateWindow(window); }
-  void PrintPlayer(Player player, int F, SDL_Window *window, Player nmp) {
+
+  void PrintPlayer(Player player, int F, SDL_Window *window) {
     switch (F) {
       case 1:
         SDL_BlitSurface(player.F1, NULL, screen, &player.pos);
@@ -170,8 +179,10 @@ class GameBase {
         SDL_BlitSurface(player.F3, NULL, screen, &player.pos);
         break;
       case 4:
-        printKO(player, nmp, screen, window);
+        printKO(player, screen, window);
         break;
+      default:
+        DBM.printMSG("Invalid case");
     }
   }
 } GB;
@@ -179,34 +190,89 @@ class GameBase {
 class input {
   const Uint8 *KeyboardState = SDL_GetKeyboardState(NULL);
 
- public:
-  bool LeftArrow = false;
-  bool RightArrow = false;
-  bool DownArrow = false;
-  bool RightCTRL = false;
-  bool Left = false;
-  bool Right = false;
-  bool Down = false;
-  bool LeftCTRL = false;
-  input() {
+  bool LeftArrow;
+  bool RightArrow;
+  bool DownArrow;
+  bool RightCTRL;
+  bool A;
+  bool D;
+  bool S;
+  bool LeftCTRL;
+
+  void GetInput() {
+    DBM.printMSG("GetInput active.");
     LeftArrow = KeyboardState[key::ARROW_LEFT];
     RightArrow = KeyboardState[key::ARROW_RIGHT];
     DownArrow = KeyboardState[key::ARROW_DOWN];
     RightCTRL = KeyboardState[key::RIGHT_CTR];
-    Left = KeyboardState[key::A];
-    Right = KeyboardState[key::D];
-    Down = KeyboardState[key::S];
+    A = KeyboardState[key::A];
+    D = KeyboardState[key::D];
+    S = KeyboardState[key::S];
     LeftCTRL = KeyboardState[key::LEFT_CTR];
   }
+
+ public:
+  input() {
+    LeftArrow = false;
+    RightArrow = false;
+    DownArrow = false;
+    RightCTRL = false;
+    A = false;
+    D = false;
+    S = false;
+    LeftCTRL = false;
+  }
+  bool ReturnInput(string select) {
+    GetInput();
+    if (select == "A") {
+      return A;
+    }
+    if (select == "S") {
+      return S;
+    }
+    if (select == "D") {
+      return D;
+    }
+    if (select == "LeftCTRL") {
+      return LeftCTRL;
+    }
+    if (select == "RightCTRL") {
+      return RightCTRL;
+    }
+    if (select == "DownArrow") {
+      return DownArrow;
+    }
+    if (select == "LeftArrow") {
+      return LeftArrow;
+    }
+    if (select == "RightArrow") {
+      return RightArrow;
+    } else {
+      perror("Wrong Input String");
+      return -1;
+    }
+  }
 } in;
+
 int main(int argc, char **argv) {
+  DBM.printMSG("Main start");
   Player Red;
   Player Blue;
+  Red.pos.x = 1400;
+  Red.pos.y = 600;
+  Red.pos.w = Blue.pos.w = 499;
+  Red.pos.h = Blue.pos.h = 489;
+  Blue.pos.x = 0;
+  Blue.pos.y = 600;
+
   string pathResources = IPH.GetResourcePath(argv[0]);
+  GB.clearTerm(1);
+
   std::cout << "Resources path=" << pathResources << std::endl;
+  GB.clearTerm(1);
 
   Point2D WindowSize = IPH.getSettings(pathResources);
-
+  GB.clearTerm(1);
   IPH.LoadAllFiles(pathResources, Blue, Red);
   SDL_Window *window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                                         SDL_WINDOWPOS_CENTERED, WindowSize.x,
@@ -214,14 +280,19 @@ int main(int argc, char **argv) {
   screen = SDL_GetWindowSurface(window);
   CHECK_RESULT(screen);
   CHECK_RESULT(window);  //! Test if variables are NULL or not.
+
   bool running = true;
   SDL_Event e;
+
   while (running) {
+    GB.clearScreen(screen);  //* Clear screen
+
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
         SDL_Quit();
         running = false;
       }
+
       if (e.type == SDL_KEYDOWN) {
         if (e.key.keysym.sym == SDLK_ESCAPE) {
           SDL_Quit();
@@ -229,8 +300,31 @@ int main(int argc, char **argv) {
         }
       }
     }
-    //*
-    GB.clearScreen(screen);
+    //! Actual Input code and such goes here
+
+    if (in.ReturnInput("D") &&
+        Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
+      Blue.pos.x += movement;
+      DBM.printMSG("Blue moving forward!");
+    }
+    if (in.ReturnInput("A") && Blue.pos.x > 0) {
+      Blue.pos.x -= movement;
+      DBM.printMSG("Blue moving backwards!");
+    }
+    if (in.ReturnInput("LeftArrow") &&
+        Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
+      DBM.printMSG("Red moving forward!");
+
+      Red.pos.x -= movement;
+    }
+    if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w) {
+      DBM.printMSG("Red moving backwards!");
+
+      Red.pos.x += movement;
+    }
+    GB.PrintPlayer(Red, 1, window);
+    GB.PrintPlayer(Blue, 1, window);
+    //! clean screen to
     GB.updateScreen(window);
   }
 }
