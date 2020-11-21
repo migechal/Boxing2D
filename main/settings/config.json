@@ -1,7 +1,10 @@
 {
 	"Screen": {
 		"Resolution x": "1900",
-		"Resolution y": "1080",
-		"Type": "SHOWN"
+		"Resolution y": "1080"
+	},
+	"GameSettings": {
+		"fps": 60,
+		"Movement": 10
 	}
 }

@@ -106,28 +106,21 @@ class InitPhase {
     }
   }
 
-  Point2D getSettings(string path) {
+  int getSettingsFromJson(string path, string tree, string child) {
     string pathSettings = path + "main/settings/config.json";
-    std::cout << "getSettings from " << pathSettings << std::endl;
-
-    Point2D P2D;
+    std::cout << "Settings from " << pathSettings << std::endl;
+    int num;
     namespace pt = boost::property_tree;
     pt::ptree loadPtreeRoot;
     pt::read_json(pathSettings, loadPtreeRoot);
     pt::ptree temp;
-    pt::ptree tsizex;
-    pt::ptree tsizey;
-    pt::ptree ttype;
+    pt::ptree tsize;
     string type;
     //! Get child of file
-    temp = loadPtreeRoot.get_child("Screen");
-    tsizex = temp.get_child("Resolution x");
-    tsizey = temp.get_child("Resolution y");
-    ttype = temp.get_child("Type");
-    P2D.x = tsizex.get_value<int>();
-    P2D.y = tsizey.get_value<int>();
-    type = ttype.get_value<string>();
-    return P2D;
+    temp = loadPtreeRoot.get_child(tree);
+    tsize = temp.get_child(child);
+    num = tsize.get_value<int>();
+    return num;
   }
 } IPH;
 class DebugMode {
@@ -200,7 +193,6 @@ class input {
   bool LeftCTRL;
 
   void GetInput() {
-    DBM.printMSG("GetInput active.");
     LeftArrow = KeyboardState[key::ARROW_LEFT];
     RightArrow = KeyboardState[key::ARROW_RIGHT];
     DownArrow = KeyboardState[key::ARROW_DOWN];
@@ -271,7 +263,14 @@ int main(int argc, char **argv) {
   std::cout << "Resources path=" << pathResources << std::endl;
   GB.clearTerm(1);
 
-  Point2D WindowSize = IPH.getSettings(pathResources);
+  const int FrameTime =
+      IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
+  std::cout << "FPS: " << FrameTime << std::endl;
+  Point2D WindowSize;
+  WindowSize.x =
+      IPH.getSettingsFromJson(pathResources, "Screen", "Resolution x");
+  WindowSize.y =
+      IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
   GB.clearTerm(1);
   IPH.LoadAllFiles(pathResources, Blue, Red);
   SDL_Window *window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
@@ -285,8 +284,8 @@ int main(int argc, char **argv) {
   SDL_Event e;
 
   while (running) {
-    GB.clearScreen(screen);  //* Clear screen
-
+    GB.clearScreen(screen);                //* Clear screen
+    auto startFrameTime = SDL_GetTicks();  //* Get current ticks
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
         SDL_Quit();
@@ -300,31 +299,36 @@ int main(int argc, char **argv) {
         }
       }
     }
+    if (in.ReturnInput("RightCTRL")) Red.punch = true;
+    if (in.ReturnInput("LeftCTRL")) Blue.punch = true;
+
     //! Actual Input code and such goes here
-
-    if (in.ReturnInput("D") &&
-        Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
-      Blue.pos.x += movement;
-      DBM.printMSG("Blue moving forward!");
+    if (!Blue.punch) {
+      if (in.ReturnInput("D") &&
+          Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
+        Blue.pos.x += movement;
+      }
+      if (in.ReturnInput("A") && Blue.pos.x > 0) {
+        Blue.pos.x -= movement;
+      }
+      GB.PrintPlayer(Blue, 1, window);
+    } else {
+      GB.PrintPlayer(Blue, 2, window);
+      Blue.punch = false;
     }
-    if (in.ReturnInput("A") && Blue.pos.x > 0) {
-      Blue.pos.x -= movement;
-      DBM.printMSG("Blue moving backwards!");
+    if (!Red.punch) {
+      if (in.ReturnInput("LeftArrow") &&
+          Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
+        Red.pos.x -= movement;
+      }
+      if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w) {
+        Red.pos.x += movement;
+      }
+      GB.PrintPlayer(Red, 1, window);
+    } else {
+      GB.PrintPlayer(Red, 2, window);
+      Red.punch = false;
     }
-    if (in.ReturnInput("LeftArrow") &&
-        Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
-      DBM.printMSG("Red moving forward!");
-
-      Red.pos.x -= movement;
-    }
-    if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w) {
-      DBM.printMSG("Red moving backwards!");
-
-      Red.pos.x += movement;
-    }
-    GB.PrintPlayer(Red, 1, window);
-    GB.PrintPlayer(Blue, 1, window);
-    //! clean screen to
     GB.updateScreen(window);
   }
 }
