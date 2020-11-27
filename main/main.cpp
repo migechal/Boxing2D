@@ -5,24 +5,26 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <fstream>
-#define IMGUI_IMPLEMENTATION
+
+#define IMGUI_IMPLEMENTATION 
 #include "imgui/imgui.h"
+
 #include "imgui/imgui_sdl.h"
 
-#ifdef IMGUI_IMPLEMENTATION
+#ifdef IMGUI_IMPLEMENTATION 
 #include <iterator>
 
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_demo.cpp"
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_widgets.cpp"
+
 #endif
 using namespace std;
 #define PUNCHFRAME 60
 #define movement 5
 #define dist 160
 #define hd 5
-
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
     auto res = fnc;                                                         \
@@ -35,8 +37,8 @@ using namespace std;
   }
 
 //
-SDL_Surface *screen = nullptr;
-SDL_Surface *background = nullptr;
+SDL_Surface* screen = nullptr;
+SDL_Surface* background = nullptr;
 struct Point2D {
   int x;
   int y;
@@ -53,56 +55,62 @@ enum key {
   LEFT_CTR = SDL_SCANCODE_LCTRL
 };
 struct Player {
-  int HP;
+  int HP = 100;
   int CTMG;
   int PT;
   int BT;
-  SDL_Surface *F1;
-  SDL_Surface *F2;
-  SDL_Surface *F3;
+  SDL_Surface* F1;
+  SDL_Surface* F2;
+  SDL_Surface* F3;
   bool punch;
+  bool block;
   SDL_Rect pos;
-  vector<SDL_Surface *> KOP;
+  std::chrono::_V2::system_clock::time_point punchTimer =
+    std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> PunchDif;
+  vector<SDL_Surface*> KOP;
 };
+Player KOer;
 class InitPhase {
-  SDL_Surface *BMPloader(string file) {
+  SDL_Surface* BMPloader(string file) {
     // SDL_Log(file.c_str(), " Has been loaded successfullys.");
-    SDL_Surface *bp = SDL_LoadBMP(file.c_str());
+    SDL_Surface* bp = SDL_LoadBMP(file.c_str());
     CHECK_RESULT(bp);
     return bp;
   }
 
- public:
+public:
   string GetResourcePath(string applicationPath) {
     auto envResourcePath = getenv("PATH_TO_BOXING2D_RESOURCES");
     cout << "envResourcePath:  " << (envResourcePath ? envResourcePath : "NULL")
-         << endl;
+      << endl;
     if (envResourcePath != nullptr) {
       applicationPath.assign(envResourcePath);
       if (applicationPath.back() != '/') {
         applicationPath += "/";
       }
-    } else {
+    }
+    else {
       while (applicationPath.back() != '/') {
         applicationPath.pop_back();
       }
     }
     return applicationPath + "";
   }
-  void LoadAllFiles(string path, Player &p1, Player &p2) {
+  void LoadAllFiles(string path, Player& p1, Player& p2) {
     background = BMPloader(path + "main/assets/Ring.bmp");
     p1.F1 = BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
     p1.F2 =
-        BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
+      BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
     p1.F3 = BMPloader(path + "main/assets/BLUE/Blocking/Blocking.bmp");
     p2.F1 = BMPloader(path + "main/assets/RED/Idle/Red_Idle.bmp");
     p2.F2 = BMPloader(path + "main/assets/RED/PunchRight/Punch-4.bmp");
     p2.F3 = BMPloader(path + "main/assets/RED/Blocking/Blocking-0.bmp");
     for (auto i = 0; i < 10; i++) {
       p1.KOP.push_back(
-          BMPloader(path + "main/assets/BLUE/KO/KO-" + to_string(i) + ".bmp"));
+        BMPloader(path + "main/assets/BLUE/KO/KO-" + to_string(i) + ".bmp"));
       p2.KOP.push_back(
-          BMPloader((path + "main/assets/RED/KO/KO-" + to_string(i) + ".bmp")));
+        BMPloader((path + "main/assets/RED/KO/KO-" + to_string(i) + ".bmp")));
     }
   }
 
@@ -124,7 +132,7 @@ class InitPhase {
   }
 } IPH;
 class DebugMode {
- public:
+public:
   int returnHP(Player player) { return player.HP; }
   int returnPunchIT(Player player) { return player.PT; }
   int returnBlockIT(Player player) { return player.BT; }
@@ -133,55 +141,64 @@ class DebugMode {
 } DBM;
 
 class GameBase {
-  int ChangeHP(int &PlayerHP, int addition = -5) {
-    PlayerHP += addition;
-    return PlayerHP;
+  bool checkBlock(Player* player) {
+    if (player.block) { cout << "true" << endl; }
+    else { cout << "false" << endl; }
+    return player.block;
   }
-  void updateWindow(SDL_Window *window) {
+
+  void updateWindow(SDL_Window* window) {
     CHECK_RESULT(!SDL_UpdateWindowSurface(window));
   }
-  void printKO(Player KOd, SDL_Surface *screen, SDL_Window *window) {
+  void printKO(Player KOd, Player KOer, SDL_Surface* screen,
+    SDL_Window* window) {
     for (int i = 0; i != 9; i++) {
-      CHECK_RESULT(!SDL_BlitSurface(KOd.KOP[i], NULL, screen, &KOd.pos));
       updateWindow(window);
+      clearScreen(screen);
+      PrintPlayer(KOer, 1, window);
+      CHECK_RESULT(!SDL_BlitSurface(KOd.KOP[i], NULL, screen, &KOd.pos));
       SDL_Delay(60);
     }
   }
 
- public:
+public:
   void clearTerm(int lines) {
     for (int i = 0; i < lines; i++) {
       cout << endl;
     }
   }
 
-  void clearScreen(SDL_Surface *screen) {
+  void clearScreen(SDL_Surface* screen) {
     CHECK_RESULT(!SDL_BlitSurface(background, NULL, screen, NULL));
   }
-  void updateScreen(SDL_Window *window) { updateWindow(window); }
+  void updateScreen(SDL_Window* window) { updateWindow(window); }
 
-  void PrintPlayer(Player player, int F, SDL_Window *window) {
+  void PrintPlayer(Player player, int F, SDL_Window* window) {
     switch (F) {
-      case 1:
-        SDL_BlitSurface(player.F1, NULL, screen, &player.pos);
-        break;
-      case 2:
-        SDL_BlitSurface(player.F2, NULL, screen, &player.pos);
-        break;
-      case 3:
-        SDL_BlitSurface(player.F3, NULL, screen, &player.pos);
-        break;
-      case 4:
-        printKO(player, screen, window);
-        break;
-      default:
-        DBM.printMSG("Invalid case");
+    case 1:
+      SDL_BlitSurface(player.F1, NULL, screen, &player.pos);
+      break;
+    case 2:
+      SDL_BlitSurface(player.F2, NULL, screen, &player.pos);
+      break;
+    case 3:
+      SDL_BlitSurface(player.F3, NULL, screen, &player.pos);
+      break;
+    case 4:
+      printKO(player, KOer, screen, window);
+      break;
+    default:
+      DBM.printMSG("Invalid case");
     }
+  }
+  int decreaseHP(Player& player, int dmg = 5) {
+    player.HP -= checkBlock(player) ? 0 : dmg;
+    return player.HP;
   }
 } GB;
 
 class input {
-  const Uint8 *KeyboardState = SDL_GetKeyboardState(NULL);
+  const Uint8* KeyboardState = SDL_GetKeyboardState(NULL);
 
   bool LeftArrow;
   bool RightArrow;
@@ -203,7 +220,7 @@ class input {
     LeftCTRL = KeyboardState[key::LEFT_CTR];
   }
 
- public:
+public:
   input() {
     LeftArrow = false;
     RightArrow = false;
@@ -239,14 +256,15 @@ class input {
     }
     if (select == "RightArrow") {
       return RightArrow;
-    } else {
+    }
+    else {
       perror("Wrong Input String");
       return -1;
     }
   }
 } in;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   DBM.printMSG("Main start");
   Player Red;
   Player Blue;
@@ -264,22 +282,22 @@ int main(int argc, char **argv) {
   GB.clearTerm(1);
 
   const int FrameTime =
-      IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
+    IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
   std::cout << "FPS: " << FrameTime << std::endl;
   Point2D WindowSize;
   WindowSize.x =
-      IPH.getSettingsFromJson(pathResources, "Screen", "Resolution x");
+    IPH.getSettingsFromJson(pathResources, "Screen", "Resolution x");
   WindowSize.y =
-      IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
+    IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
   GB.clearTerm(1);
   IPH.LoadAllFiles(pathResources, Blue, Red);
-  SDL_Window *window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
-                                        SDL_WINDOWPOS_CENTERED, WindowSize.x,
-                                        WindowSize.y, SDL_WINDOW_SHOWN);
+  SDL_Window* window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
+    SDL_WINDOWPOS_CENTERED, WindowSize.x,
+    WindowSize.y, SDL_WINDOW_SHOWN);
   screen = SDL_GetWindowSurface(window);
   CHECK_RESULT(screen);
   CHECK_RESULT(window);  //! Test if variables are NULL or not.
-
+  chrono::duration<double> timepunch = chrono::duration<double>(0.5);
   bool running = true;
   SDL_Event e;
 
@@ -299,35 +317,74 @@ int main(int argc, char **argv) {
         }
       }
     }
-    if (in.ReturnInput("RightCTRL")) Red.punch = true;
-    if (in.ReturnInput("LeftCTRL")) Blue.punch = true;
+    // Reset clocks
+    Red.PunchDif = std::chrono::high_resolution_clock::now() - Red.punchTimer;
+    Blue.PunchDif = std::chrono::high_resolution_clock::now() - Blue.punchTimer;
 
+    Red.punch = (in.ReturnInput("RightCTRL")) ? true : false;
+    Red.block = (in.ReturnInput("DownArrow")) ? true : false;
+    Blue.punch = (in.ReturnInput("LeftCTRL")) ? true : false;
+    Blue.block = (in.ReturnInput("S")) ? true : false;
     //! Actual Input code and such goes here
-    if (!Blue.punch) {
+    if (!Blue.punch && !Blue.block) {
       if (in.ReturnInput("D") &&
-          Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
+        Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
         Blue.pos.x += movement;
       }
       if (in.ReturnInput("A") && Blue.pos.x > 0) {
         Blue.pos.x -= movement;
       }
       GB.PrintPlayer(Blue, 1, window);
-    } else {
+    }
+    else if (Blue.punch && !Blue.block) {
       GB.PrintPlayer(Blue, 2, window);
       Blue.punch = false;
+      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
+        Blue.PunchDif > timepunch) {
+        DBM.printMSG("Red HP: " + to_string(GB.decreaseHP(Blue)));
+        Blue.punchTimer = std::chrono::high_resolution_clock::now();
+      }
+    }
+    else if (!Blue.punch && Blue.block) {
+      GB.PrintPlayer(Blue, 3, window);
+      Blue.block = true;
+      if (Blue.block) { cout << "true" << endl; }
+      else { cout << "false" << endl; }
+    }
+    else {
+      Blue.block = false;
+      Blue.punch = false;
+      GB.PrintPlayer(Blue, 1, window);
     }
     if (!Red.punch) {
       if (in.ReturnInput("LeftArrow") &&
-          Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
+        Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
         Red.pos.x -= movement;
       }
       if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w) {
         Red.pos.x += movement;
       }
       GB.PrintPlayer(Red, 1, window);
-    } else {
+    }
+    else {
       GB.PrintPlayer(Red, 2, window);
       Red.punch = false;
+      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
+        Red.PunchDif > timepunch) {
+        DBM.printMSG("Blue HP: " + to_string(GB.decreaseHP(Red)));
+        Red.punchTimer = std::chrono::high_resolution_clock::now();
+      }
+    }
+    // CHECK FOR KO
+    if (Red.HP <= 0) {
+      KOer = Red;
+      GB.PrintPlayer(Blue, 4, window);
+      break;
+    }
+    if (Blue.HP <= 0) {
+      KOer = Blue;
+      GB.PrintPlayer(Red, 4, window);
+      break;
     }
     GB.updateScreen(window);
   }
