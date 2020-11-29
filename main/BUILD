@@ -15,7 +15,7 @@ cc_binary(
         "IMGUI_IMPL_OPENGL_LOADER_GL3W",
         "REENTRANT",
     ],
-    linkopts = ["-lSDL2 -lGL -ldl"],
+    linkopts = ["-lSDL2 -lGL -ldl -lSDL2_mixer"],
     deps = [
         "//imgui:imgui_lib",
     ],

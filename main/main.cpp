@@ -1,18 +1,19 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <bits/stdc++.h>
 #include <time.h>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <fstream>
-
+#include <filesystem>
+#include <iterator>
 #define IMGUI_IMPLEMENTATION 
 #include "imgui/imgui.h"
 
 #include "imgui/imgui_sdl.h"
 
 #ifdef IMGUI_IMPLEMENTATION 
-#include <iterator>
 
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_demo.cpp"
@@ -55,6 +56,7 @@ enum key {
   LEFT_CTR = SDL_SCANCODE_LCTRL
 };
 struct Player {
+  std::string color;
   int HP = 100;
   int CTMG;
   int PT;
@@ -78,6 +80,11 @@ class InitPhase {
     CHECK_RESULT(bp);
     return bp;
   }
+  Mix_Chunk* WAVloader(string file) {
+    auto sound = Mix_LoadWAV(file.c_str());
+    CHECK_RESULT(sound);
+    return sound;
+  }
 
 public:
   string GetResourcePath(string applicationPath) {
@@ -97,7 +104,7 @@ public:
     }
     return applicationPath + "";
   }
-  void LoadAllFiles(string path, Player& p1, Player& p2) {
+  void LoadAllIMG(string path, Player& p1, Player& p2) {
     background = BMPloader(path + "main/assets/Ring.bmp");
     p1.F1 = BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
     p1.F2 =
@@ -113,6 +120,13 @@ public:
         BMPloader((path + "main/assets/RED/KO/KO-" + to_string(i) + ".bmp")));
     }
   }
+  void SetupSound() {
+    CHECK_RESULT(Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512));
+    Mix_AllocateChannels(4);
+  };
+  void LoadAllSound(string path, std::vector<Mix_Chunk*> sounds) {
+    sounds.push_back(Mix_LoadWAV((path + "background.wav").c_str()));
+  };
 
   int getSettingsFromJson(string path, string tree, string child) {
     string pathSettings = path + "main/settings/config.json";
@@ -141,9 +155,8 @@ public:
 } DBM;
 
 class GameBase {
-  bool checkBlock(Player* player) {
-    if (player.block) { cout << "true" << endl; }
-    else { cout << "false" << endl; }
+  bool checkBlock(Player& player) {
+    cout << player.color << " block  " << player.block << endl;
     return player.block;
   }
 
@@ -268,6 +281,8 @@ int main(int argc, char** argv) {
   DBM.printMSG("Main start");
   Player Red;
   Player Blue;
+  Red.color = "Red";
+  Blue.color = "Blue";
   Red.pos.x = 1400;
   Red.pos.y = 600;
   Red.pos.w = Blue.pos.w = 499;
@@ -290,7 +305,7 @@ int main(int argc, char** argv) {
   WindowSize.y =
     IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
   GB.clearTerm(1);
-  IPH.LoadAllFiles(pathResources, Blue, Red);
+  IPH.LoadAllIMG(pathResources, Blue, Red);
   SDL_Window* window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED, WindowSize.x,
     WindowSize.y, SDL_WINDOW_SHOWN);
@@ -303,7 +318,7 @@ int main(int argc, char** argv) {
 
   while (running) {
     GB.clearScreen(screen);                //* Clear screen
-    auto startFrameTime = SDL_GetTicks();  //* Get current ticks
+    // auto startFrameTime = SDL_GetTicks();  //* Get current ticks
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
         SDL_Quit();
@@ -341,22 +356,21 @@ int main(int argc, char** argv) {
       Blue.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
         Blue.PunchDif > timepunch) {
-        DBM.printMSG("Red HP: " + to_string(GB.decreaseHP(Blue)));
+        int hp = GB.decreaseHP(Red);
+        DBM.printMSG("Red HP: " + to_string(hp));
         Blue.punchTimer = std::chrono::high_resolution_clock::now();
       }
     }
     else if (!Blue.punch && Blue.block) {
       GB.PrintPlayer(Blue, 3, window);
       Blue.block = true;
-      if (Blue.block) { cout << "true" << endl; }
-      else { cout << "false" << endl; }
     }
-    else {
+    else if (Blue.punch && Blue.block) {
       Blue.block = false;
       Blue.punch = false;
       GB.PrintPlayer(Blue, 1, window);
     }
-    if (!Red.punch) {
+    if (!Red.punch && !Red.block) {
       if (in.ReturnInput("LeftArrow") &&
         Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist) {
         Red.pos.x -= movement;
@@ -371,19 +385,20 @@ int main(int argc, char** argv) {
       Red.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
         Red.PunchDif > timepunch) {
-        DBM.printMSG("Blue HP: " + to_string(GB.decreaseHP(Red)));
+        int hp = GB.decreaseHP(Blue);
+        DBM.printMSG("Blue HP: " + to_string(hp));
         Red.punchTimer = std::chrono::high_resolution_clock::now();
       }
     }
     // CHECK FOR KO
     if (Red.HP <= 0) {
       KOer = Red;
-      GB.PrintPlayer(Blue, 4, window);
+      GB.PrintPlayer(Red, 4, window);
       break;
     }
     if (Blue.HP <= 0) {
       KOer = Blue;
-      GB.PrintPlayer(Red, 4, window);
+      GB.PrintPlayer(Blue, 4, window);
       break;
     }
     GB.updateScreen(window);

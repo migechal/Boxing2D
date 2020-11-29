@@ -2,6 +2,7 @@
     "files.associations": {
         "bitset": "cpp",
         "string_view": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "cstring": "cpp"
     }
 }
