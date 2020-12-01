@@ -380,7 +380,7 @@ int main(int argc, char** argv) {
       }
       GB.PrintPlayer(Red, 1, window);
     }
-    else {
+    else if (Red.punch && !Red.block) {
       GB.PrintPlayer(Red, 2, window);
       Red.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
@@ -389,6 +389,15 @@ int main(int argc, char** argv) {
         DBM.printMSG("Blue HP: " + to_string(hp));
         Red.punchTimer = std::chrono::high_resolution_clock::now();
       }
+    }
+    else if (!Red.punch && Red.block) {
+      GB.PrintPlayer(Red, 3, window);
+      Red.block = true;
+    }
+    else if (Red.punch && Red.block) {
+      Red.punch = false;
+      Red.block = false;
+      GB.PrintPlayer(Red, 1, window);
     }
     // CHECK FOR KO
     if (Red.HP <= 0) {
@@ -401,6 +410,7 @@ int main(int argc, char** argv) {
       GB.PrintPlayer(Blue, 4, window);
       break;
     }
-    GB.updateScreen(window);
+    //Draw hp bar for players
+    GB.updateScreen(window); //Update screen
   }
 }
