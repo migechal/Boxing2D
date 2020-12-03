@@ -64,6 +64,7 @@ struct Player {
   SDL_Surface* F1;
   SDL_Surface* F2;
   SDL_Surface* F3;
+  bool ableToDoDamage;
   bool punch;
   bool block;
   SDL_Rect pos;
@@ -75,7 +76,7 @@ struct Player {
 Player KOer;
 class InitPhase {
   SDL_Surface* BMPloader(string file) {
-    // SDL_Log(file.c_str(), " Has been loaded successfullys.");
+    SDL_Log(file.c_str(), " Has been loaded successfullys.");
     SDL_Surface* bp = SDL_LoadBMP(file.c_str());
     CHECK_RESULT(bp);
     return bp;
@@ -341,6 +342,9 @@ int main(int argc, char** argv) {
     Blue.punch = (in.ReturnInput("LeftCTRL")) ? true : false;
     Blue.block = (in.ReturnInput("S")) ? true : false;
     //! Actual Input code and such goes here
+    if (!Blue.punch) {
+      Blue.ableToDoDamage = true;
+    }
     if (!Blue.punch && !Blue.block) {
       if (in.ReturnInput("D") &&
         Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
@@ -354,11 +358,10 @@ int main(int argc, char** argv) {
     else if (Blue.punch && !Blue.block) {
       GB.PrintPlayer(Blue, 2, window);
       Blue.punch = false;
-      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
-        Blue.PunchDif > timepunch) {
+      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist && Blue.ableToDoDamage) {
         int hp = GB.decreaseHP(Red);
         DBM.printMSG("Red HP: " + to_string(hp));
-        Blue.punchTimer = std::chrono::high_resolution_clock::now();
+        Blue.ableToDoDamage = false;
       }
     }
     else if (!Blue.punch && Blue.block) {
@@ -368,7 +371,11 @@ int main(int argc, char** argv) {
     else if (Blue.punch && Blue.block) {
       Blue.block = false;
       Blue.punch = false;
+      Blue.ableToDoDamage = true;
       GB.PrintPlayer(Blue, 1, window);
+    }
+    if (!Red.punch) {
+      Red.ableToDoDamage = true;
     }
     if (!Red.punch && !Red.block) {
       if (in.ReturnInput("LeftArrow") &&
@@ -384,10 +391,10 @@ int main(int argc, char** argv) {
       GB.PrintPlayer(Red, 2, window);
       Red.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
-        Red.PunchDif > timepunch) {
+        Red.ableToDoDamage) {
         int hp = GB.decreaseHP(Blue);
         DBM.printMSG("Blue HP: " + to_string(hp));
-        Red.punchTimer = std::chrono::high_resolution_clock::now();
+        Red.ableToDoDamage = false;
       }
     }
     else if (!Red.punch && Red.block) {
@@ -397,6 +404,7 @@ int main(int argc, char** argv) {
     else if (Red.punch && Red.block) {
       Red.punch = false;
       Red.block = false;
+      Red.ableToDoDamage = true;
       GB.PrintPlayer(Red, 1, window);
     }
     // CHECK FOR KO
