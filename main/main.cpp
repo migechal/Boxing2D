@@ -22,10 +22,6 @@
 
 #endif
 using namespace std;
-#define PUNCHFRAME 60
-#define movement 5
-#define dist 160
-#define hd 5
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
     auto res = fnc;                                                         \
@@ -37,6 +33,11 @@ using namespace std;
     }                                                                       \
   }
 
+const int PUNCHFRAME = 60;
+const int movement = 5;
+const int dist = 160;
+const int hd = 5;
+const int DefHP = 100;
 //
 SDL_Surface* screen = nullptr;
 SDL_Surface* background = nullptr;
@@ -73,7 +74,7 @@ struct Player {
   std::chrono::duration<double> PunchDif;
   vector<SDL_Surface*> KOP;
 };
-Player KOer;
+Player KOed;
 class InitPhase {
   SDL_Surface* BMPloader(string file) {
     SDL_Log(file.c_str(), " Has been loaded successfullys.");
@@ -174,12 +175,30 @@ class GameBase {
       SDL_Delay(60);
     }
   }
+  void drawRect(SDL_Surface* screen, SDL_Rect* loc, Uint8 r, Uint8 g, Uint8 b) {
+    CHECK_RESULT(SDL_FillRect(screen, loc, SDL_MapRGB(screen->format, r, g, b)));
+  }
+  int hight = 50;
 
 public:
   void clearTerm(int lines) {
     for (int i = 0; i < lines; i++) {
       cout << endl;
     }
+  }
+  void drawHPBar(SDL_Surface* screen, int x, int y, int hp, Uint8 r, Uint8 g, Uint8 b) {
+    SDL_Rect HealthBar;
+    SDL_Rect bgrd;
+    bgrd.x = x - 5;
+    bgrd.y = y - 5;
+    bgrd.w = DefHP * 5;
+    bgrd.h = hight + 15;
+    HealthBar.x = x;
+    HealthBar.y = y;
+    HealthBar.w = hp;
+    HealthBar.h = hight;
+    drawRect(screen, &bgrd, 255, 255, 255);
+    drawRect(screen, &HealthBar, r, g, b);
   }
 
   void clearScreen(SDL_Surface* screen) {
@@ -199,7 +218,7 @@ public:
       SDL_BlitSurface(player.F3, NULL, screen, &player.pos);
       break;
     case 4:
-      printKO(player, KOer, screen, window);
+      printKO(player, KOed, screen, window);
       break;
     default:
       DBM.printMSG("Invalid case");
@@ -409,16 +428,17 @@ int main(int argc, char** argv) {
     }
     // CHECK FOR KO
     if (Red.HP <= 0) {
-      KOer = Red;
+      KOed = Blue;
       GB.PrintPlayer(Red, 4, window);
       break;
     }
     if (Blue.HP <= 0) {
-      KOer = Blue;
+      KOed = Red;
       GB.PrintPlayer(Blue, 4, window);
       break;
     }
     //Draw hp bar for players
+    GB.drawHPBar(screen, 100, 100, Blue.HP, 10, 10, 255);
     GB.updateScreen(window); //Update screen
   }
 }
