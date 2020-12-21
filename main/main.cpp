@@ -59,7 +59,7 @@ enum key {
 struct Player {
   std::string color;
   int HP = 100;
-  int CTMG;
+  int CTMG = 1;
   int PT;
   int BT;
   SDL_Surface* F1;
@@ -175,10 +175,8 @@ class GameBase {
       SDL_Delay(60);
     }
   }
-  void drawRect(SDL_Surface* screen, SDL_Rect* loc, Uint8 r, Uint8 g, Uint8 b) {
-    CHECK_RESULT(SDL_FillRect(screen, loc, SDL_MapRGB(screen->format, r, g, b)));
-  }
-  int hight = 50;
+
+  int hight = 10;
 
 public:
   void clearTerm(int lines) {
@@ -186,19 +184,33 @@ public:
       cout << endl;
     }
   }
-  void drawHPBar(SDL_Surface* screen, int x, int y, int hp, Uint8 r, Uint8 g, Uint8 b) {
+  void drawHPBar(SDL_Surface* screen, char direction, int x, int y, int hp, Uint8 r, Uint8 g, Uint8 b, int scaleBar) {
     SDL_Rect HealthBar;
     SDL_Rect bgrd;
+    SDL_Surface* HP = SDL_CreateRGBSurface(0, hp * scaleBar, hight, 32, 0, 0, 0, 0);
+    SDL_Surface* Outline = SDL_CreateRGBSurface(0, DefHP * scaleBar + 10, hight + 10, 32, 0, 0, 0, 0);
+    CHECK_RESULT(HP);
+    CHECK_RESULT(Outline);
+    int offset = 0;
+
+    switch (direction)
+    {
+    case 'R':
+      offset = (DefHP - hp) * scaleBar;
+      break;
+    case 'L':
+      offset = 0;
+      break;
+    default:
+      break;
+    }
     bgrd.x = x - 5;
     bgrd.y = y - 5;
-    bgrd.w = DefHP * 5;
-    bgrd.h = hight + 15;
-    HealthBar.x = x;
+    HealthBar.x = x - 5 + offset;
     HealthBar.y = y;
-    HealthBar.w = hp;
-    HealthBar.h = hight;
-    drawRect(screen, &bgrd, 255, 255, 255);
-    drawRect(screen, &HealthBar, r, g, b);
+    SDL_FillRect(HP, NULL, SDL_MapRGB(HP->format, r, g, b));
+    CHECK_RESULT(!SDL_BlitSurface(Outline, NULL, screen, &bgrd));
+    CHECK_RESULT(!SDL_BlitSurface(HP, NULL, screen, &HealthBar));
   }
 
   void clearScreen(SDL_Surface* screen) {
@@ -224,9 +236,21 @@ public:
       DBM.printMSG("Invalid case");
     }
   }
-  int decreaseHP(Player& player, int dmg = 5) {
-    player.HP -= checkBlock(player) ? 0 : dmg;
-    return player.HP;
+  int decreaseHP(Player& playerHit, Player& playerHitting, SDL_Window* window) {
+    if (checkBlock(playerHit)) {
+      playerHit.CTMG = 10;
+
+      // for (int i = 0; i < 10; i++) {
+      //   playerHitting.pos.x += i;
+      //   PrintPlayer(playerHitting, 1, window);
+      //   updateScreen(window);
+      // }
+    }
+    else {
+      playerHit.HP -= playerHitting.CTMG;
+    }
+
+    return playerHit.HP;
   }
 } GB;
 
@@ -378,7 +402,8 @@ int main(int argc, char** argv) {
       GB.PrintPlayer(Blue, 2, window);
       Blue.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist && Blue.ableToDoDamage) {
-        int hp = GB.decreaseHP(Red);
+        int hp = GB.decreaseHP(Red, Blue, window);
+        Blue.CTMG = 1;
         DBM.printMSG("Red HP: " + to_string(hp));
         Blue.ableToDoDamage = false;
       }
@@ -411,7 +436,8 @@ int main(int argc, char** argv) {
       Red.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
         Red.ableToDoDamage) {
-        int hp = GB.decreaseHP(Blue);
+        int hp = GB.decreaseHP(Blue, Red, window);
+        Red.CTMG = 1;
         DBM.printMSG("Blue HP: " + to_string(hp));
         Red.ableToDoDamage = false;
       }
@@ -438,7 +464,8 @@ int main(int argc, char** argv) {
       break;
     }
     //Draw hp bar for players
-    GB.drawHPBar(screen, 100, 100, Blue.HP, 10, 10, 255);
+    GB.drawHPBar(screen, 'L', 100, 100, Blue.HP, 0, 0, 255, 5);
+    GB.drawHPBar(screen, 'R', WindowSize.x - DefHP * 5 - 100, 100, Red.HP, 255, 0, 0, 5);
     GB.updateScreen(window); //Update screen
   }
 }
