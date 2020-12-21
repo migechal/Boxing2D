@@ -22,10 +22,6 @@
 
 #endif
 using namespace std;
-#define PUNCHFRAME 60
-#define movement 5
-#define dist 160
-#define hd 5
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
     auto res = fnc;                                                         \
@@ -37,6 +33,11 @@ using namespace std;
     }                                                                       \
   }
 
+const int PUNCHFRAME = 60;
+const int movement = 5;
+const int dist = 160;
+const int hd = 5;
+const int DefHP = 100;
 //
 SDL_Surface* screen = nullptr;
 SDL_Surface* background = nullptr;
@@ -58,12 +59,13 @@ enum key {
 struct Player {
   std::string color;
   int HP = 100;
-  int CTMG;
+  int CTMG = 1;
   int PT;
   int BT;
   SDL_Surface* F1;
   SDL_Surface* F2;
   SDL_Surface* F3;
+  bool ableToDoDamage;
   bool punch;
   bool block;
   SDL_Rect pos;
@@ -72,10 +74,10 @@ struct Player {
   std::chrono::duration<double> PunchDif;
   vector<SDL_Surface*> KOP;
 };
-Player KOer;
+Player KOed;
 class InitPhase {
   SDL_Surface* BMPloader(string file) {
-    // SDL_Log(file.c_str(), " Has been loaded successfullys.");
+    SDL_Log(file.c_str(), " Has been loaded successfullys.");
     SDL_Surface* bp = SDL_LoadBMP(file.c_str());
     CHECK_RESULT(bp);
     return bp;
@@ -174,11 +176,41 @@ class GameBase {
     }
   }
 
+  int hight = 10;
+
 public:
   void clearTerm(int lines) {
     for (int i = 0; i < lines; i++) {
       cout << endl;
     }
+  }
+  void drawHPBar(SDL_Surface* screen, char direction, int x, int y, int hp, Uint8 r, Uint8 g, Uint8 b, int scaleBar) {
+    SDL_Rect HealthBar;
+    SDL_Rect bgrd;
+    SDL_Surface* HP = SDL_CreateRGBSurface(0, hp * scaleBar, hight, 32, 0, 0, 0, 0);
+    SDL_Surface* Outline = SDL_CreateRGBSurface(0, DefHP * scaleBar + 10, hight + 10, 32, 0, 0, 0, 0);
+    CHECK_RESULT(HP);
+    CHECK_RESULT(Outline);
+    int offset = 0;
+
+    switch (direction)
+    {
+    case 'R':
+      offset = (DefHP - hp) * scaleBar;
+      break;
+    case 'L':
+      offset = 0;
+      break;
+    default:
+      break;
+    }
+    bgrd.x = x - 5;
+    bgrd.y = y - 5;
+    HealthBar.x = x - 5 + offset;
+    HealthBar.y = y;
+    SDL_FillRect(HP, NULL, SDL_MapRGB(HP->format, r, g, b));
+    CHECK_RESULT(!SDL_BlitSurface(Outline, NULL, screen, &bgrd));
+    CHECK_RESULT(!SDL_BlitSurface(HP, NULL, screen, &HealthBar));
   }
 
   void clearScreen(SDL_Surface* screen) {
@@ -198,15 +230,27 @@ public:
       SDL_BlitSurface(player.F3, NULL, screen, &player.pos);
       break;
     case 4:
-      printKO(player, KOer, screen, window);
+      printKO(player, KOed, screen, window);
       break;
     default:
       DBM.printMSG("Invalid case");
     }
   }
-  int decreaseHP(Player& player, int dmg = 5) {
-    player.HP -= checkBlock(player) ? 0 : dmg;
-    return player.HP;
+  int decreaseHP(Player& playerHit, Player& playerHitting, SDL_Window* window) {
+    if (checkBlock(playerHit)) {
+      playerHit.CTMG = 10;
+
+      // for (int i = 0; i < 10; i++) {
+      //   playerHitting.pos.x += i;
+      //   PrintPlayer(playerHitting, 1, window);
+      //   updateScreen(window);
+      // }
+    }
+    else {
+      playerHit.HP -= playerHitting.CTMG;
+    }
+
+    return playerHit.HP;
   }
 } GB;
 
@@ -341,6 +385,9 @@ int main(int argc, char** argv) {
     Blue.punch = (in.ReturnInput("LeftCTRL")) ? true : false;
     Blue.block = (in.ReturnInput("S")) ? true : false;
     //! Actual Input code and such goes here
+    if (!Blue.punch) {
+      Blue.ableToDoDamage = true;
+    }
     if (!Blue.punch && !Blue.block) {
       if (in.ReturnInput("D") &&
         Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist) {
@@ -354,11 +401,11 @@ int main(int argc, char** argv) {
     else if (Blue.punch && !Blue.block) {
       GB.PrintPlayer(Blue, 2, window);
       Blue.punch = false;
-      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
-        Blue.PunchDif > timepunch) {
-        int hp = GB.decreaseHP(Red);
+      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist && Blue.ableToDoDamage) {
+        int hp = GB.decreaseHP(Red, Blue, window);
+        Blue.CTMG = 1;
         DBM.printMSG("Red HP: " + to_string(hp));
-        Blue.punchTimer = std::chrono::high_resolution_clock::now();
+        Blue.ableToDoDamage = false;
       }
     }
     else if (!Blue.punch && Blue.block) {
@@ -368,7 +415,11 @@ int main(int argc, char** argv) {
     else if (Blue.punch && Blue.block) {
       Blue.block = false;
       Blue.punch = false;
+      Blue.ableToDoDamage = true;
       GB.PrintPlayer(Blue, 1, window);
+    }
+    if (!Red.punch) {
+      Red.ableToDoDamage = true;
     }
     if (!Red.punch && !Red.block) {
       if (in.ReturnInput("LeftArrow") &&
@@ -384,10 +435,11 @@ int main(int argc, char** argv) {
       GB.PrintPlayer(Red, 2, window);
       Red.punch = false;
       if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
-        Red.PunchDif > timepunch) {
-        int hp = GB.decreaseHP(Blue);
+        Red.ableToDoDamage) {
+        int hp = GB.decreaseHP(Blue, Red, window);
+        Red.CTMG = 1;
         DBM.printMSG("Blue HP: " + to_string(hp));
-        Red.punchTimer = std::chrono::high_resolution_clock::now();
+        Red.ableToDoDamage = false;
       }
     }
     else if (!Red.punch && Red.block) {
@@ -397,20 +449,23 @@ int main(int argc, char** argv) {
     else if (Red.punch && Red.block) {
       Red.punch = false;
       Red.block = false;
+      Red.ableToDoDamage = true;
       GB.PrintPlayer(Red, 1, window);
     }
     // CHECK FOR KO
     if (Red.HP <= 0) {
-      KOer = Red;
+      KOed = Blue;
       GB.PrintPlayer(Red, 4, window);
       break;
     }
     if (Blue.HP <= 0) {
-      KOer = Blue;
+      KOed = Red;
       GB.PrintPlayer(Blue, 4, window);
       break;
     }
     //Draw hp bar for players
+    GB.drawHPBar(screen, 'L', 100, 100, Blue.HP, 0, 0, 255, 5);
+    GB.drawHPBar(screen, 'R', WindowSize.x - DefHP * 5 - 100, 100, Red.HP, 255, 0, 0, 5);
     GB.updateScreen(window); //Update screen
   }
 }
