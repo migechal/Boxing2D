@@ -14,11 +14,11 @@
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_widgets.cpp"
 #endif
-#include "src/headers/input.h"
-#include "src/headers/init.h"
-#include "src/headers/gamebase.h"
-#include "src/headers/debugmodule.h"
-#include "src/headers/player.h"
+#include "headers/input.h"
+#include "headers/init.h"
+#include "headers/gamebase.h"
+#include "headers/debugmodule.h"
+#include "headers/player.h"
 using namespace std;
 
 #define CHECK_RESULT(fnc)                                                   \
@@ -51,7 +51,6 @@ struct Point2D
 int main(int argc, char **argv)
 {
   DebugMode DBM;
-  GameBase GB(background, screen, window, DefHP);
   InitPhase IPH(background);
   Input::input in;
   DBM.printMSG("Main start");
@@ -67,11 +66,7 @@ int main(int argc, char **argv)
   Blue.pos.y = 600;
 
   string pathResources = IPH.GetResourcePath(argv[0]);
-  GB.clearTerm(1);
-
   std::cout << "Resources path=" << pathResources << std::endl;
-  GB.clearTerm(1);
-
   const int FrameTime =
       IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
   std::cout << "FPS: " << FrameTime << std::endl;
@@ -80,14 +75,16 @@ int main(int argc, char **argv)
       IPH.getSettingsFromJson(pathResources, "Screen", "Resolution x");
   WindowSize.y =
       IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
-  GB.clearTerm(1);
   IPH.LoadAllIMG(pathResources, Blue, Red);
+  background = IPH.getBackground(pathResources);
   window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WindowSize.x,
                             WindowSize.y, SDL_WINDOW_SHOWN);
   screen = SDL_GetWindowSurface(window);
-  CHECK_RESULT(screen);
   CHECK_RESULT(window); //! Test if variables are NULL or not.
+  CHECK_RESULT(screen);
+  GameBase GB(background, screen, window, DefHP);
+
   chrono::duration<double> timepunch = chrono::duration<double>(0.5);
   bool running = true;
   SDL_Event e;

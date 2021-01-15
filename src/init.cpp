@@ -25,7 +25,6 @@ InitPhase::InitPhase(SDL_Surface *background)
 
 void InitPhase::LoadAllIMG(std::string path, Player &p1, Player &p2)
 {
-    background_ = BMPloader(path + "main/assets/Ring.bmp");
     p1.F1 = BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
     p1.F2 =
         BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
@@ -40,6 +39,10 @@ void InitPhase::LoadAllIMG(std::string path, Player &p1, Player &p2)
         p2.KOP.push_back(
             BMPloader((path + "main/assets/RED/KO/KO-" + std::to_string(i) + ".bmp")));
     }
+}
+
+SDL_Surface* InitPhase::getBackground(std::string path){
+    return BMPloader(path + "main/assets/Ring.bmp");
 }
 
 SDL_Surface *InitPhase::BMPloader(std::string file)
@@ -92,7 +95,7 @@ void InitPhase::LoadAllSound(std::string path, std::vector<Mix_Chunk *> sounds)
 
 int InitPhase::getSettingsFromJson(std::string path, std::string tree, std::string child)
 {
-    std::string pathSettings = path + "main/settings/config.json";
+    std::string pathSettings = path + "settings/config.json";
     std::cout << "Settings from " << pathSettings << std::endl;
     int num;
     namespace pt = boost::property_tree;
