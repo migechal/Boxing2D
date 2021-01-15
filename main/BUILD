@@ -5,7 +5,6 @@ cc_binary(
     srcs = [
         "main.cpp",
     ],
-    args = ["debug-mode"],
     copts = [
         "-std=c++17",
         "-Wall",
@@ -18,5 +17,6 @@ cc_binary(
     linkopts = ["-lSDL2 -lGL -ldl -lSDL2_mixer"],
     deps = [
         "//imgui:imgui_lib",
+        "//src:Sources",
     ],
 )
