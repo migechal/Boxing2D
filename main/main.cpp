@@ -49,10 +49,14 @@ struct Point2D
 };
 
 int main(int argc, char **argv)
-{
+{ 
+  const int MAX = 7;
   DebugMode DBM;
+
   InitPhase IPH(background);
+  
   Input::input in;
+  
   DBM.printMSG("Main start");
   Player Red;
   Player Blue;
@@ -64,6 +68,7 @@ int main(int argc, char **argv)
   Red.pos.h = Blue.pos.h = 489;
   Blue.pos.x = 0;
   Blue.pos.y = 600;
+
 
   string pathResources = IPH.GetResourcePath(argv[0]);
   std::cout << "Resources path=" << pathResources << std::endl;
@@ -79,7 +84,7 @@ int main(int argc, char **argv)
   background = IPH.getBackground(pathResources);
   window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WindowSize.x,
-                            WindowSize.y, SDL_WINDOW_SHOWN);
+                            WindowSize.y, SDL_WINDOW_FULLSCREEN);
   screen = SDL_GetWindowSurface(window);
   CHECK_RESULT(window); //! Test if variables are NULL or not.
   CHECK_RESULT(screen);
