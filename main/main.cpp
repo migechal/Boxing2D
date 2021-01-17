@@ -19,7 +19,7 @@
 #include "headers/gamebase.h"
 #include "headers/debugmodule.h"
 #include "headers/player.h"
-using namespace std;
+#include "headers/loadingscreen.h"
 
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
@@ -50,13 +50,32 @@ struct Point2D
 
 int main(int argc, char **argv)
 { 
-  const int MAX = 7;
+  const int MAX = 5;
+  SDL_Window* loadingScreen = SDL_CreateWindow("Loading...", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+  SDL_Surface* screen = SDL_GetWindowSurface(window);
+  SDL_Surface* splashScreenSurface = SDL_LoadBMP("assets/SplashScreen.bmp");
+  SDL_Color textColor = {0, 17, 255};
+  loading::SplashScreen splash(screen, MAX, 1280, 720, splashScreenSurface);
+  
+  
+  splash.drawSplash("Debug Module Initialization", textColor);
+  SDL_UpdateWindowSurface(loadingScreen);
+
   DebugMode DBM;
+
+  splash.drawSplash("InitPhase Module Initialization", textColor);
+  SDL_UpdateWindowSurface(loadingScreen);
 
   InitPhase IPH(background);
   
+  splash.drawSplash("Input Module Initialization", textColor);
+  SDL_UpdateWindowSurface(loadingScreen);
+
   Input::input in;
-  
+
+  splash.drawSplash("Main Start Initialization", textColor);
+  SDL_UpdateWindowSurface(loadingScreen);
+
   DBM.printMSG("Main start");
   Player Red;
   Player Blue;
@@ -69,9 +88,13 @@ int main(int argc, char **argv)
   Blue.pos.x = 0;
   Blue.pos.y = 600;
 
+  splash.drawSplash("Getting Resources...", textColor);
+  SDL_UpdateWindowSurface(loadingScreen);
 
-  string pathResources = IPH.GetResourcePath(argv[0]);
+
+  std::string pathResources = IPH.GetResourcePath(argv[0]);
   std::cout << "Resources path=" << pathResources << std::endl;
+  splash.drawSplash("Creating Main Window", textColor);
   const int FrameTime =
       IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
   std::cout << "FPS: " << FrameTime << std::endl;
@@ -82,6 +105,11 @@ int main(int argc, char **argv)
       IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
   IPH.LoadAllIMG(pathResources, Blue, Red);
   background = IPH.getBackground(pathResources);
+
+  splash.~SplashScreen();
+  SDL_UpdateWindowSurface(loadingScreen);
+  SDL_DestroyWindow(window);
+  
   window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WindowSize.x,
                             WindowSize.y, SDL_WINDOW_FULLSCREEN);
@@ -90,7 +118,6 @@ int main(int argc, char **argv)
   CHECK_RESULT(screen);
   GameBase GB(background, screen, window, DefHP);
 
-  chrono::duration<double> timepunch = chrono::duration<double>(0.5);
   bool running = true;
   SDL_Event e;
 
@@ -147,7 +174,7 @@ int main(int argc, char **argv)
       {
         int hp = GB.decreaseHP(Red, Blue);
         Blue.CTMG = 1;
-        DBM.printMSG("Red HP: " + to_string(hp));
+        DBM.printMSG("Red HP: " + std::to_string(hp));
         Blue.ableToDoDamage = false;
       }
     }
@@ -189,7 +216,7 @@ int main(int argc, char **argv)
       {
         int hp = GB.decreaseHP(Blue, Red);
         Red.CTMG = 1;
-        DBM.printMSG("Blue HP: " + to_string(hp));
+        DBM.printMSG("Blue HP: " + std::to_string(hp));
         Red.ableToDoDamage = false;
       }
     }

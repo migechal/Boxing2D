@@ -8,16 +8,21 @@ namespace loading
     {
         static int progress;
         int max;
+        int windowWidth;
+        int windowHight;
+        int scale;
         SDL_Surface* screen_;
+        SDL_Surface* file;
         SDL_Rect pos;
         bool isMax();
         void drawText(int fontSize, std::string text, SDL_Color color);
         void drawBar();
+        
 
     public:
-        SplashScreen(SDL_Surface* screen, int maximum);
+        SplashScreen(SDL_Surface* screen, int maximum, int width, int hight, SDL_Surface* SplashScreenFile);
         ~SplashScreen();
-        void drawSplash(SDL_Surface* file, std::string message, SDL_Color messageColor);
+        void drawSplash (std::string message, SDL_Color messageColor);
     };
 
 

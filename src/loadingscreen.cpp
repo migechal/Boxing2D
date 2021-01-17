@@ -3,10 +3,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-loading::SplashScreen::SplashScreen(SDL_Surface* screen, int maximum){
+loading::SplashScreen::SplashScreen(SDL_Surface* screen, int maximum, int width, int hight, SDL_Surface* SplashScreenFile){
     max = maximum;
     screen_ = screen;
     progress = -1;
+    windowHight = hight;
+    windowWidth = width;
+    scale = windowWidth/max;
+    file = SplashScreenFile;
 }
 
 loading::SplashScreen::~SplashScreen(){
@@ -21,26 +25,25 @@ bool loading::SplashScreen::isMax(){
 void loading::SplashScreen::drawText(int fontSize, std::string text, SDL_Color color){
     pos.x = 0;
     pos.h = fontSize;
-    pos.y = 1920 - (fontSize + 20);
+    pos.y = windowWidth - (fontSize + 20);
     pos.w = 100;
     Font font("Sans.ttf", fontSize);
     font.renderText(text, color, screen_, &pos);
 }
 
-void loading::SplashScreen::drawSplash(SDL_Surface* file, std::string message, SDL_Color messageColor){
+void loading::SplashScreen::drawSplash(std::string message, SDL_Color messageColor){
     SDL_BlitSurface(file, NULL, screen_, NULL);
     drawText(28, message, messageColor);
     drawBar();
 }
 
 void loading::SplashScreen::drawBar(){
-
-/// TOMORROW
-
-
+    SDL_Surface* loading = SDL_CreateRGBSurface(0, ++progress * scale, 25, 32, 0, 11, 172, 0);
+    SDL_Rect pos;
+    pos.x = 0;
+    pos.y = windowHight - 25;
+    SDL_BlitSurface(loading, NULL, screen_, &pos);
 }
-
-
 
 loading::Font::Font(std::string fontName, int fontSize){
     font = TTF_OpenFont(fontName.c_str(), fontSize);

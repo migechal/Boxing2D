@@ -1,7 +1,7 @@
 {
 	"Screen": {
-		"Resolution x": "3840",
-		"Resolution y": "2160"
+		"Resolution x": "1920",
+		"Resolution y": "1080"
 	},
 	"GameSettings": {
 		"fps": 60,
