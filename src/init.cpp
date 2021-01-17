@@ -1,4 +1,5 @@
 #include "headers/init.h"
+#include "headers/loading.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <string>
@@ -25,33 +26,27 @@ InitPhase::InitPhase(SDL_Surface *background)
 
 void InitPhase::LoadAllIMG(std::string path, Player &p1, Player &p2)
 {
-    p1.F1 = BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
+    p1.F1 = loading::BMPloader(path + "main/assets/BLUE/Idle/Blue_Idle.bmp");
     p1.F2 =
-        BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
-    p1.F3 = BMPloader(path + "main/assets/BLUE/Blocking/Blocking.bmp");
-    p2.F1 = BMPloader(path + "main/assets/RED/Idle/Red_Idle.bmp");
-    p2.F2 = BMPloader(path + "main/assets/RED/PunchRight/Punch-4.bmp");
-    p2.F3 = BMPloader(path + "main/assets/RED/Blocking/Blocking-0.bmp");
+        loading::BMPloader(path + "main/assets/BLUE/PunchRight/Blue-Punch-Right-4.bmp");
+    p1.F3 = loading::BMPloader(path + "main/assets/BLUE/Blocking/Blocking.bmp");
+    p2.F1 = loading::BMPloader(path + "main/assets/RED/Idle/Red_Idle.bmp");
+    p2.F2 = loading::BMPloader(path + "main/assets/RED/PunchRight/Punch-4.bmp");
+    p2.F3 = loading::BMPloader(path + "main/assets/RED/Blocking/Blocking-0.bmp");
     for (auto i = 0; i < 10; i++)
     {
         p1.KOP.push_back(
-            BMPloader(path + "main/assets/BLUE/KO/KO-" + std::to_string(i) + ".bmp"));
+            loading::BMPloader(path + "main/assets/BLUE/KO/KO-" + std::to_string(i) + ".bmp"));
         p2.KOP.push_back(
-            BMPloader((path + "main/assets/RED/KO/KO-" + std::to_string(i) + ".bmp")));
+            loading::BMPloader((path + "main/assets/RED/KO/KO-" + std::to_string(i) + ".bmp")));
     }
 }
 
-SDL_Surface* InitPhase::getBackground(std::string path){
-    return BMPloader(path + "main/assets/Ring.bmp");
+SDL_Surface *InitPhase::getBackground(std::string path)
+{
+    return loading::BMPloader(path + "main/assets/Ring.bmp");
 }
 
-SDL_Surface *InitPhase::BMPloader(std::string file)
-{
-    SDL_Log(file.c_str(), " Has been loaded successfullys.");
-    SDL_Surface *bp = SDL_LoadBMP(file.c_str());
-    CHECK_RESULT(bp);
-    return bp;
-}
 Mix_Chunk *InitPhase::WAVloader(std::string file)
 {
     auto sound = Mix_LoadWAV(file.c_str());

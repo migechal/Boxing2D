@@ -3,18 +3,7 @@
 #include <bits/stdc++.h>
 #include <time.h>
 #include <unistd.h>
-#define IMGUI_IMPLEMENTATION
-#include "imgui/imgui.h"
 
-#include "imgui/imgui_sdl.h"
-
-#ifdef IMGUI_IMPLEMENTATION
-
-#include "imgui/imgui.cpp"
-#include "imgui/imgui_demo.cpp"
-#include "imgui/imgui_draw.cpp"
-#include "imgui/imgui_widgets.cpp"
-#endif
 #include "headers/input.h"
 #include "headers/init.h"
 #include "headers/gamebase.h"
@@ -121,6 +110,7 @@ int main(int argc, char **argv)
 
   GameBase GB(background, screen, window, DefHP);
   bool running = true;
+  bool playing = false;
   SDL_Event e;
 
   while (running)
@@ -145,111 +135,115 @@ int main(int argc, char **argv)
       }
     }
     // Reset clocks
-
-    Red.punch = (in.ReturnInput("RightCTRL")) ? true : false;
-    Red.block = (in.ReturnInput("DownArrow")) ? true : false;
-    Blue.punch = (in.ReturnInput("LeftCTRL")) ? true : false;
-    Blue.block = (in.ReturnInput("S")) ? true : false;
-    //! Actual Input code and such goes here
-    if (!Blue.punch)
+    if (playing)
     {
-      Blue.ableToDoDamage = true;
-    }
-    if (!Blue.punch && !Blue.block)
-    {
-      if (in.ReturnInput("D") &&
-          Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist)
+      Red.punch = (in.ReturnInput("RightCTRL")) ? true : false;
+      Red.block = (in.ReturnInput("DownArrow")) ? true : false;
+      Blue.punch = (in.ReturnInput("LeftCTRL")) ? true : false;
+      Blue.block = (in.ReturnInput("S")) ? true : false;
+      //! Actual Input code and such goes here
+      if (!Blue.punch)
       {
-        Blue.pos.x += movement;
+        Blue.ableToDoDamage = true;
       }
-      if (in.ReturnInput("A") && Blue.pos.x > 0)
+      if (!Blue.punch && !Blue.block)
       {
-        Blue.pos.x -= movement;
+        if (in.ReturnInput("D") &&
+            Blue.pos.x + movement < Red.pos.x - Red.F1->w + dist)
+        {
+          Blue.pos.x += movement;
+        }
+        if (in.ReturnInput("A") && Blue.pos.x > 0)
+        {
+          Blue.pos.x -= movement;
+        }
+        GB.PrintPlayer(Blue, 1);
       }
-      GB.PrintPlayer(Blue, 1);
-    }
-    else if (Blue.punch && !Blue.block)
-    {
-      GB.PrintPlayer(Blue, 2);
-      Blue.punch = false;
-      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist && Blue.ableToDoDamage)
+      else if (Blue.punch && !Blue.block)
       {
-        int hp = GB.decreaseHP(Red, Blue);
-        Blue.CTMG = 1;
-        DBM.printMSG("Red HP: " + std::to_string(hp));
-        Blue.ableToDoDamage = false;
+        GB.PrintPlayer(Blue, 2);
+        Blue.punch = false;
+        if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist && Blue.ableToDoDamage)
+        {
+          int hp = GB.decreaseHP(Red, Blue);
+          Blue.CTMG = 1;
+          DBM.printMSG("Red HP: " + std::to_string(hp));
+          Blue.ableToDoDamage = false;
+        }
       }
-    }
-    else if (!Blue.punch && Blue.block)
-    {
-      GB.PrintPlayer(Blue, 3);
-      Blue.block = true;
-    }
-    else if (Blue.punch && Blue.block)
-    {
-      Blue.block = false;
-      Blue.punch = false;
-      Blue.ableToDoDamage = true;
-      GB.PrintPlayer(Blue, 1);
-    }
-    if (!Red.punch)
-    {
-      Red.ableToDoDamage = true;
-    }
-    if (!Red.punch && !Red.block)
-    {
-      if (in.ReturnInput("LeftArrow") &&
-          Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist)
+      else if (!Blue.punch && Blue.block)
       {
-        Red.pos.x -= movement;
+        GB.PrintPlayer(Blue, 3);
+        Blue.block = true;
       }
-      if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w)
+      else if (Blue.punch && Blue.block)
       {
-        Red.pos.x += movement;
+        Blue.block = false;
+        Blue.punch = false;
+        Blue.ableToDoDamage = true;
+        GB.PrintPlayer(Blue, 1);
       }
-      GB.PrintPlayer(Red, 1);
-    }
-    else if (Red.punch && !Red.block)
-    {
-      GB.PrintPlayer(Red, 2);
-      Red.punch = false;
-      if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
-          Red.ableToDoDamage)
+      if (!Red.punch)
       {
-        int hp = GB.decreaseHP(Blue, Red);
-        Red.CTMG = 1;
-        DBM.printMSG("Blue HP: " + std::to_string(hp));
-        Red.ableToDoDamage = false;
+        Red.ableToDoDamage = true;
       }
+      if (!Red.punch && !Red.block)
+      {
+        if (in.ReturnInput("LeftArrow") &&
+            Red.pos.x - movement > Blue.pos.x + Blue.F1->w - dist)
+        {
+          Red.pos.x -= movement;
+        }
+        if (in.ReturnInput("RightArrow") && Red.pos.x < 1920 - Red.F1->w)
+        {
+          Red.pos.x += movement;
+        }
+        GB.PrintPlayer(Red, 1);
+      }
+      else if (Red.punch && !Red.block)
+      {
+        GB.PrintPlayer(Red, 2);
+        Red.punch = false;
+        if (Red.pos.x - movement < Blue.pos.x + Blue.F1->w - dist &&
+            Red.ableToDoDamage)
+        {
+          int hp = GB.decreaseHP(Blue, Red);
+          Red.CTMG = 1;
+          DBM.printMSG("Blue HP: " + std::to_string(hp));
+          Red.ableToDoDamage = false;
+        }
+      }
+      else if (!Red.punch && Red.block)
+      {
+        GB.PrintPlayer(Red, 3);
+        Red.block = true;
+      }
+      else if (Red.punch && Red.block)
+      {
+        Red.punch = false;
+        Red.block = false;
+        Red.ableToDoDamage = true;
+        GB.PrintPlayer(Red, 1);
+      }
+      // CHECK FOR KO
+      if (Red.HP <= 0)
+      {
+        GB.changeKOer(Blue);
+        GB.PrintPlayer(Red, 4);
+        break;
+      }
+      if (Blue.HP <= 0)
+      {
+        GB.changeKOer(Red);
+        GB.PrintPlayer(Blue, 4);
+        break;
+      }
+      //Draw hp bar for players
+      GB.drawHPBar('L', 100, 100, Blue.HP, 0, 0, 255, 5);
+      GB.drawHPBar('R', WindowSize.x - DefHP * 5 - 100, 100, Red.HP, 255, 0, 0, 5);
+      GB.updateScreen(); //Update screen}
     }
-    else if (!Red.punch && Red.block)
-    {
-      GB.PrintPlayer(Red, 3);
-      Red.block = true;
+    else{
+      
     }
-    else if (Red.punch && Red.block)
-    {
-      Red.punch = false;
-      Red.block = false;
-      Red.ableToDoDamage = true;
-      GB.PrintPlayer(Red, 1);
-    }
-    // CHECK FOR KO
-    if (Red.HP <= 0)
-    {
-      GB.changeKOer(Blue);
-      GB.PrintPlayer(Red, 4);
-      break;
-    }
-    if (Blue.HP <= 0)
-    {
-      GB.changeKOer(Red);
-      GB.PrintPlayer(Blue, 4);
-      break;
-    }
-    //Draw hp bar for players
-    GB.drawHPBar('L', 100, 100, Blue.HP, 0, 0, 255, 5);
-    GB.drawHPBar('R', WindowSize.x - DefHP * 5 - 100, 100, Red.HP, 255, 0, 0, 5);
-    GB.updateScreen(); //Update screen
   }
-}

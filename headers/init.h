@@ -4,7 +4,6 @@
 #include <SDL2/SDL_mixer.h>
 class InitPhase
 {
-    SDL_Surface *BMPloader(std::string file);
     Mix_Chunk *WAVloader(std::string file);
     SDL_Surface *background_;
 

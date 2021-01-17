@@ -4,6 +4,7 @@
 #include <string>
 namespace loading
 {
+    SDL_Surface *BMPloader(std::string file);
     std::string GetResourcePath(std::string applicationPath);
 
     class SplashScreen
