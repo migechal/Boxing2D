@@ -10,7 +10,6 @@ class InitPhase
 
 public:
     InitPhase(SDL_Surface *background);
-    std::string GetResourcePath(std::string applicationPath);
     void LoadAllIMG(std::string path, Player &p1, Player &p2);
     SDL_Surface* getBackground(std::string path);
     void SetupSound();

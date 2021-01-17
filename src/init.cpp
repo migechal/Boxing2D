@@ -59,29 +59,6 @@ Mix_Chunk *InitPhase::WAVloader(std::string file)
     return sound;
 }
 
-std::string InitPhase::GetResourcePath(std::string applicationPath)
-{
-    auto envResourcePath = getenv("PATH_TO_BOXING2D_RESOURCES");
-    std::cout << "envResourcePath:  " << (envResourcePath ? envResourcePath : "NULL")
-              << std::endl;
-    if (envResourcePath != nullptr)
-    {
-        applicationPath.assign(envResourcePath);
-        if (applicationPath.back() != '/')
-        {
-            applicationPath += "/";
-        }
-    }
-    else
-    {
-        while (applicationPath.back() != '/')
-        {
-            applicationPath.pop_back();
-        }
-    }
-    return applicationPath + "";
-}
-
 void InitPhase::SetupSound()
 {
     CHECK_RESULT(Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512));

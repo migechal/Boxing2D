@@ -1,7 +1,33 @@
-#include "headers/loadingscreen.h"
+#include "headers/loading.h"
 #include <string>
 #include <SDL2/SDL.h>
+#include <iostream>
+#include <string>
 #include <SDL2/SDL_ttf.h>
+
+std::string loading::GetResourcePath(std::string applicationPath)
+{
+    auto envResourcePath = getenv("PATH_TO_BOXING2D_RESOURCES");
+    std::cout << "envResourcePath:  " << (envResourcePath ? envResourcePath : "NULL")
+              << std::endl;
+    if (envResourcePath != nullptr)
+    {
+        applicationPath.assign(envResourcePath);
+        if (applicationPath.back() != '/')
+        {
+            applicationPath += "/";
+        }
+    }
+    else
+    {
+        while (applicationPath.back() != '/')
+        {
+            applicationPath.pop_back();
+        }
+    }
+    return applicationPath + "";
+}
+
 
 loading::SplashScreen::SplashScreen(SDL_Surface* screen, int maximum, int width, int hight, SDL_Surface* SplashScreenFile){
     max = maximum;

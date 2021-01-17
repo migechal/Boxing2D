@@ -4,9 +4,11 @@
 #include <string>
 namespace loading
 {
+    std::string GetResourcePath(std::string applicationPath);
+
     class SplashScreen
     {
-        static int progress;
+        int progress;
         int max;
         int windowWidth;
         int windowHight;

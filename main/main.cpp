@@ -2,6 +2,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <bits/stdc++.h>
 #include <time.h>
+#include <unistd.h>
 #define IMGUI_IMPLEMENTATION
 #include "imgui/imgui.h"
 
@@ -19,7 +20,7 @@
 #include "headers/gamebase.h"
 #include "headers/debugmodule.h"
 #include "headers/player.h"
-#include "headers/loadingscreen.h"
+#include "headers/loading.h"
 
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
@@ -49,25 +50,24 @@ struct Point2D
 };
 
 int main(int argc, char **argv)
-{ 
+{
   const int MAX = 5;
-  SDL_Window* loadingScreen = SDL_CreateWindow("Loading...", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
-  SDL_Surface* screen = SDL_GetWindowSurface(window);
-  SDL_Surface* splashScreenSurface = SDL_LoadBMP("assets/SplashScreen.bmp");
+  std::string splashscreen = loading::GetResourcePath(argv[0]) + "main/assets/SplashScreen.bmp";
+  SDL_Surface *splashScreenSurface = SDL_LoadBMP(splashscreen.c_str());
+  SDL_Window *loadingScreen = SDL_CreateWindow("Loading...", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+  SDL_Surface *loadingScreenSurface = SDL_GetWindowSurface(loadingScreen);
+  CHECK_RESULT(splashScreenSurface);
   SDL_Color textColor = {0, 17, 255};
-  loading::SplashScreen splash(screen, MAX, 1280, 720, splashScreenSurface);
-  
-  
+  loading::SplashScreen splash(loadingScreenSurface, MAX, 1280, 720, splashScreenSurface);
   splash.drawSplash("Debug Module Initialization", textColor);
-  SDL_UpdateWindowSurface(loadingScreen);
-
+  CHECK_RESULT(!SDL_UpdateWindowSurface(loadingScreen));
   DebugMode DBM;
 
   splash.drawSplash("InitPhase Module Initialization", textColor);
   SDL_UpdateWindowSurface(loadingScreen);
 
   InitPhase IPH(background);
-  
+
   splash.drawSplash("Input Module Initialization", textColor);
   SDL_UpdateWindowSurface(loadingScreen);
 
@@ -90,9 +90,9 @@ int main(int argc, char **argv)
 
   splash.drawSplash("Getting Resources...", textColor);
   SDL_UpdateWindowSurface(loadingScreen);
+  usleep(300000);
 
-
-  std::string pathResources = IPH.GetResourcePath(argv[0]);
+  std::string pathResources = loading::GetResourcePath(argv[0]);
   std::cout << "Resources path=" << pathResources << std::endl;
   splash.drawSplash("Creating Main Window", textColor);
   const int FrameTime =
@@ -108,16 +108,18 @@ int main(int argc, char **argv)
 
   splash.~SplashScreen();
   SDL_UpdateWindowSurface(loadingScreen);
-  SDL_DestroyWindow(window);
-  
+  SDL_DestroyWindow(loadingScreen);
+
+  usleep(30000);
+
   window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WindowSize.x,
-                            WindowSize.y, SDL_WINDOW_FULLSCREEN);
+                            WindowSize.y, SDL_WINDOW_SHOWN);
   screen = SDL_GetWindowSurface(window);
   CHECK_RESULT(window); //! Test if variables are NULL or not.
   CHECK_RESULT(screen);
-  GameBase GB(background, screen, window, DefHP);
 
+  GameBase GB(background, screen, window, DefHP);
   bool running = true;
   SDL_Event e;
 
