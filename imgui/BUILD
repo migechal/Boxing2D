@@ -39,7 +39,10 @@ cc_library(
         "REENTRANT",
     ],
     includes = ["."],
-    visibility = ["//main:__pkg__"],
+    visibility = [
+        "//main:__pkg__", 
+        "//src:__pkg__",
+        ],
 )
 
 cc_binary(

@@ -10,6 +10,7 @@
 #include "headers/debugmodule.h"
 #include "headers/player.h"
 #include "headers/loading.h"
+#include "headers/menu.h"
 
 #define CHECK_RESULT(fnc)                                                   \
   {                                                                         \
@@ -82,25 +83,34 @@ int main(int argc, char **argv)
   usleep(300000);
 
   std::string pathResources = loading::GetResourcePath(argv[0]);
+
   std::cout << "Resources path=" << pathResources << std::endl;
+
   splash.drawSplash("Creating Main Window", textColor);
   const int FrameTime =
       IPH.getSettingsFromJson(pathResources, "GameSettings", "fps");
+
   std::cout << "FPS: " << FrameTime << std::endl;
+
   Point2D WindowSize;
+
   WindowSize.x =
       IPH.getSettingsFromJson(pathResources, "Screen", "Resolution x");
+
   WindowSize.y =
       IPH.getSettingsFromJson(pathResources, "Screen", "Resolution y");
+
   IPH.LoadAllIMG(pathResources, Blue, Red);
+
   background = IPH.getBackground(pathResources);
 
   splash.~SplashScreen();
   SDL_UpdateWindowSurface(loadingScreen);
   SDL_DestroyWindow(loadingScreen);
 
-  usleep(30000);
+  usleep(300000);
 
+  //Create Windows and Screen surface
   window = SDL_CreateWindow("Boxing2D", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WindowSize.x,
                             WindowSize.y, SDL_WINDOW_SHOWN);
@@ -108,11 +118,21 @@ int main(int argc, char **argv)
   CHECK_RESULT(window); //! Test if variables are NULL or not.
   CHECK_RESULT(screen);
 
+  //Create Menu Buttons
+  Button playButton;
+  Button quitButton;
+  Button settingsButton;
+
+  //Init Menu
+  std::string pathToMenu = pathResources + "assets/MainMenu.bmp";
+  MainMenu *Menu = new SettingsMenu();
+
+  //Init Game Base Class
   GameBase GB(background, screen, window, DefHP);
+  //Declare and define playing and running variables, running is if window is open, playing is if we're actually playing the game or in menu
   bool running = true;
   bool playing = false;
   SDL_Event e;
-
   while (running)
   {
     GB.clearScreen(); //* Clear screen
@@ -243,7 +263,12 @@ int main(int argc, char **argv)
       GB.drawHPBar('R', WindowSize.x - DefHP * 5 - 100, 100, Red.HP, 255, 0, 0, 5);
       GB.updateScreen(); //Update screen}
     }
-    else{
-      
+
+    else
+    {
+      DBM.printMSG("pre-print");
+      Menu->printMenu(pathToMenu);
+      DBM.printMSG("post-print");
     }
   }
+}
