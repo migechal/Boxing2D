@@ -29,16 +29,14 @@
   }
 
 
-int MainMenu::printMenu(std::string menuSurfaceLocation)
-{
-    menuSurface = loading::BMPloader(menuSurfaceLocation);
-    CHECK_RESULT(menuSurface);
-    int ret = SDL_BlitSurface(menuSurface, NULL, screen, NULL);
-    SDL_FreeSurface(menuSurface);
-    return ret;
+MainMenu::MainMenu(SDL_Window* window, SDL_Surface* screen, std::string menuLocation, bool& playing){
+    this->window = window;
+    this->screen = screen;
+    this->menu = loading::BMPloader(menuLocation);
+    this->playing = playing;
 }
 
-void SettingsMenu::menuAction(SDL_Window* window)
+void SettingsMenu::menuAction()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -91,13 +89,18 @@ SDL_Rect Click::getClickPos()
     return clickDst;
 }
 
-void Quit::menuAction(SDL_Window* window)
+void Quit::menuAction()
 {
     SDL_Quit();
     SDL_DestroyWindow(window);
 }
 
-void Play::menuAction(bool &playing)
+void Play::menuAction()
 {
     playing = true;
+}
+
+void PrintMenu::menuAction()
+{
+    SDL_BlitSurface(menu, NULL, screen, NULL);
 }

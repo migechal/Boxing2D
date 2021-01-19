@@ -6,15 +6,18 @@ struct Button{
 };
 
 class MainMenu{
-    SDL_Surface* menuSurface;
-    SDL_Surface* screen;
 public:
-    MainMenu();
+    MainMenu(SDL_Window* window, SDL_Surface* screen, std::string menuLocation, bool& playing);
     virtual ~MainMenu();
-    virtual int printMenu(std::string menuSurfaceLocation) = 0;
     virtual void menuAction() = 0;
 protected:
     float sliderSpeed = 1.00;
+    SDL_Window* window;
+    SDL_Surface* screen;
+    
+    SDL_Surface* menu;
+    
+    bool playing;
 };
 
 class Click{
@@ -44,6 +47,5 @@ public:
 
 class PrintMenu : public MainMenu{
 public:
-    int printMenu(std::string menuSurfaceLocation) override;
+    virtual void menuAction() override;
 };
-
