@@ -11,6 +11,12 @@
 class WindowManager {
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
+    SDL_Event m_event;
+
+    bool hasQuit();
+
+    type::Vector2i getMonitorSize();
+
 public:
     int update();
     WindowManager(std::string windowName, type::Vector2i p_size, type::Vector2i p_pos, Uint32 p_flag);

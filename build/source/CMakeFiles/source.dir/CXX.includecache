@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mikhail/Boxing2D-2/include/Types.h
+vector
+-
+SDL2/SDL.h
+-
+
+/home/mikhail/Boxing2D-2/include/WindowManager.h
+SDL2/SDL.h
+-
+string
+-
+Types.h
+/home/mikhail/Boxing2D-2/include/Types.h
+
+/home/mikhail/Boxing2D-2/source/WindowManager.cpp
+../include/WindowManager.h
+/home/mikhail/Boxing2D-2/include/WindowManager.h
+SDL2/SDL.h
+-
+

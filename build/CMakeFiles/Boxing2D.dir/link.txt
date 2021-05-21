@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/Boxing2D.dir/source/main.cpp.o  -o Boxing2D  -L/home/mikhail/Boxing2D-2/header -Wl,-rpath,/home/mikhail/Boxing2D-2/header -lSDL2 source/libsource.a 
