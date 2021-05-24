@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(Boxing2D VERSION 2.0.0)
 
-add_executable(${PROJECT_NAME} source/main.cpp source/ResourceLoader.cpp include/ResourceLoader.h)
+add_executable(${PROJECT_NAME} source/main.cpp)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 

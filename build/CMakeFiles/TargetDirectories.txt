@@ -1,6 +1,0 @@
-/home/mikhail/Boxing2D-2/build/CMakeFiles/rebuild_cache.dir
-/home/mikhail/Boxing2D-2/build/CMakeFiles/Boxing2D.dir
-/home/mikhail/Boxing2D-2/build/CMakeFiles/edit_cache.dir
-/home/mikhail/Boxing2D-2/build/source/CMakeFiles/rebuild_cache.dir
-/home/mikhail/Boxing2D-2/build/source/CMakeFiles/source.dir
-/home/mikhail/Boxing2D-2/build/source/CMakeFiles/edit_cache.dir

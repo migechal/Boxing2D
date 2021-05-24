@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsource.a  CMakeFiles/source.dir/Game.cpp.o CMakeFiles/source.dir/Player.cpp.o CMakeFiles/source.dir/Types.cpp.o CMakeFiles/source.dir/WindowManager.cpp.o CMakeFiles/source.dir/main.cpp.o
-/usr/bin/ranlib libsource.a

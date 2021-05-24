@@ -14,7 +14,7 @@ namespace type{
     };
     class Sprite{
         Vector2i m_position;
-        std::vector<SDL_Texture*> textures;
+        std::vector<std::vector<SDL_Texture*>> textures;
     public:
         //Setter
         void setPosition(Vector2i p_newPos);

@@ -7,7 +7,7 @@
 
 
 #include <cstdio>
-#include <SDL_system.h>
+#include <SDL2/SDL_system.h>
 #include <string>
 
 class ResourceLoader {

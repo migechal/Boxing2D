@@ -3,17 +3,23 @@
 //
 
 #include "../include/WindowManager.h"
+#include "../include/Types.h"
 #include <SDL2/SDL.h>
-
-WindowManager::WindowManager(const std::string& windowName, type::Vector2i p_size, type::Vector2i p_pos, Uint32 p_flag) {
+#include <iostream>
+WindowManager::WindowManager(const std::string& windowName, type::Vector2i p_pos, Uint32 p_flag) :
+    m_bkg(nullptr), m_size(type::Vector2i(1920, 1080))
+{
     SDL_Log("Created Window");
-
-    m_window = SDL_CreateWindow(windowName.c_str(), p_pos.x, p_pos.y, p_size.x, p_size.y, p_flag);
+    m_window = SDL_CreateWindow(windowName.c_str(), p_pos.x, p_pos.y, m_size.x, m_size.y, p_flag);
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
     if(m_window == nullptr){
         SDL_Log("Error! Window is null");
     }
+}
+
+type::Vector2i WindowManager::getSize(){
+    return m_size;
 }
 
 bool WindowManager::hasQuit(){
@@ -32,8 +38,17 @@ bool WindowManager::hasQuit(){
     return false;
 }
 
+int WindowManager::draw(SDL_Texture* txt, const SDL_Rect* src, const SDL_Rect* dst){
+    return SDL_RenderCopy(m_renderer, txt, src, dst);
+}
+
 bool WindowManager::update(){
     SDL_RenderPresent(m_renderer);
+    if(m_bkg != nullptr){
+        if(draw(m_bkg, NULL, NULL) != 0){
+            std::cout << SDL_GetError() << std::endl;
+        }
+    }
     return hasQuit();
 }
 
@@ -41,4 +56,12 @@ type::Vector2i WindowManager::getMonitorSize(){
     SDL_DisplayMode t_dm;
     SDL_GetCurrentDisplayMode(0, &t_dm);
     return {t_dm.w, t_dm.h};
+}
+
+void WindowManager::setBackground(SDL_Texture* background){
+    m_bkg = background;
+}
+
+SDL_Renderer* WindowManager::getRenderer(){
+    return m_renderer;
 }

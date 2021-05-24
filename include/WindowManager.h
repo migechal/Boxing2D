@@ -12,14 +12,23 @@ class WindowManager {
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     SDL_Event m_event{};
-
+    SDL_Texture* m_bkg;
+    type::Vector2i m_size;
     bool hasQuit();
+
 
     type::Vector2i getMonitorSize();
 
 public:
+
+    SDL_Renderer* getRenderer();
+
+    type::Vector2i getSize();
+    void setBackground(SDL_Texture* background);
+    int draw(SDL_Texture* txt, const SDL_Rect* src, const SDL_Rect* dst);
     bool update();
-    WindowManager(const std::string& windowName, type::Vector2i p_size, type::Vector2i p_pos, Uint32 p_flag);
+    WindowManager(const std::string& windowName, type::Vector2i p_pos, Uint32 p_flag);
+
 };
 
 

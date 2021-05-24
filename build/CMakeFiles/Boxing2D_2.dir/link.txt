@@ -1,1 +1,0 @@
-/usr/bin/c++    -rdynamic CMakeFiles/Boxing2D_2.dir/source/Game.cpp.o CMakeFiles/Boxing2D_2.dir/source/main.cpp.o CMakeFiles/Boxing2D_2.dir/source/Player.cpp.o CMakeFiles/Boxing2D_2.dir/source/WindowManager.cpp.o CMakeFiles/Boxing2D_2.dir/source/Types.cpp.o  -o Boxing2D_2 
