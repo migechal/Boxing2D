@@ -5,7 +5,7 @@
 #include "../include/WindowManager.h"
 #include <SDL2/SDL.h>
 
-WindowManager::WindowManager(std::string windowName, type::Vector2i p_size, type::Vector2i p_pos, Uint32 p_flag) {
+WindowManager::WindowManager(const std::string& windowName, type::Vector2i p_size, type::Vector2i p_pos, Uint32 p_flag) {
     SDL_Log("Created Window");
 
     m_window = SDL_CreateWindow(windowName.c_str(), p_pos.x, p_pos.y, p_size.x, p_size.y, p_flag);
@@ -32,17 +32,13 @@ bool WindowManager::hasQuit(){
     return false;
 }
 
-int WindowManager::update(){
+bool WindowManager::update(){
     SDL_RenderPresent(m_renderer);
-    // if(hasQuit()) {
-        // return 1;
-    // }
-    return 1;
+    return hasQuit();
 }
-
 
 type::Vector2i WindowManager::getMonitorSize(){
     SDL_DisplayMode t_dm;
     SDL_GetCurrentDisplayMode(0, &t_dm);
-    return type::Vector2i(t_dm.w, t_dm.h);
+    return {t_dm.w, t_dm.h};
 }
