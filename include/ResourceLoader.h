@@ -15,7 +15,7 @@ class ResourceLoader {
 public:
     static ResourceLoader* getInstance();
 
-    static SDL_Texture* loadTexture(const std::string& location, SDL_Renderer* renderer);
+    SDL_Texture *loadTexture(const std::string &location, SDL_Renderer *renderer);
 };
 
 

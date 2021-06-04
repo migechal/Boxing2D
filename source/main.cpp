@@ -20,9 +20,6 @@ int main(){
     bool done = false;
 
     while(!done){
-
-        
-
        if(window.update()){
            done = true;
        }

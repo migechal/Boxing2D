@@ -6,14 +6,17 @@
 #define BOXING2D_2_WINDOWMANAGER_H
 #include <SDL2/SDL.h>
 #include <string>
+#include <memory>
 #include "Types.h"
 
 class WindowManager {
-    SDL_Window* m_window;
-    SDL_Renderer* m_renderer;
+    std::unique_ptr<SDL_Window> m_window;
+    std::unique_ptr<SDL_Renderer> m_renderer;
+    std::unique_ptr<SDL_Texture> m_bkg;
+
     SDL_Event m_event{};
-    SDL_Texture* m_bkg;
     type::Vector2i m_size;
+
     bool hasQuit();
 
 
