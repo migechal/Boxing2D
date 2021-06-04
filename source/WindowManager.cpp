@@ -6,30 +6,36 @@
 #include "../include/Types.h"
 #include <SDL2/SDL.h>
 #include <iostream>
-WindowManager::WindowManager(const std::string& windowName, type::Vector2i p_pos, Uint32 p_flag) :
-        m_size(type::Vector2i(1920, 1080)) {
+WindowManager::WindowManager(std::string windowName, type::Vector2i p_pos, Uint32 p_flag) : m_size(type::Vector2i(1920, 1080))
+{
     SDL_Log("Created Window");
     m_window.reset(SDL_CreateWindow(windowName.c_str(), p_pos.x, p_pos.y, m_size.x, m_size.y, p_flag));
     m_renderer.reset(SDL_CreateRenderer(m_window.get(), -1, SDL_RENDERER_ACCELERATED));
 
-    if (m_window == nullptr) {
+    if (m_window == nullptr)
+    {
         SDL_Log("Error! Window is null");
     }
 }
 
-type::Vector2i WindowManager::getSize(){
+type::Vector2i WindowManager::getSize()
+{
     return m_size;
 }
 
-bool WindowManager::hasQuit(){
-    while(SDL_PollEvent(&m_event)){
-        if (m_event.type == SDL_QUIT) {
+bool WindowManager::hasQuit()
+{
+    while (SDL_PollEvent(&m_event))
+    {
+        if (m_event.type == SDL_QUIT)
+        {
 
             return true;
-
         }
-        if(m_event.type == SDL_KEYDOWN){
-            if(m_event.key.keysym.sym == SDLK_ESCAPE){
+        if (m_event.type == SDL_KEYDOWN)
+        {
+            if (m_event.key.keysym.sym == SDLK_ESCAPE)
+            {
                 return true;
             }
         }
@@ -37,30 +43,37 @@ bool WindowManager::hasQuit(){
     return false;
 }
 
-int WindowManager::draw(SDL_Texture* txt, const SDL_Rect* src, const SDL_Rect* dst){
+int WindowManager::draw(SDL_Texture *txt, const SDL_Rect *src, const SDL_Rect *dst)
+{
     return SDL_RenderCopy(getRenderer(), txt, src, dst);
 }
 
-bool WindowManager::update(){
+bool WindowManager::update()
+{
     SDL_RenderPresent(getRenderer());
-    if(m_bkg != nullptr){
-        if (draw(m_bkg.get(), nullptr, nullptr) != 0) {
+    if (m_bkg != nullptr)
+    {
+        if (draw(m_bkg.get(), nullptr, nullptr) != 0)
+        {
             std::cout << SDL_GetError() << std::endl;
         }
     }
     return hasQuit();
 }
 
-type::Vector2i WindowManager::getMonitorSize(){
+type::Vector2i WindowManager::getMonitorSize()
+{
     SDL_DisplayMode t_dm;
     SDL_GetCurrentDisplayMode(0, &t_dm);
     return {t_dm.w, t_dm.h};
 }
 
-void WindowManager::setBackground(SDL_Texture* background){
+void WindowManager::setBackground(SDL_Texture *background)
+{
     m_bkg.reset(background);
 }
 
-SDL_Renderer* WindowManager::getRenderer(){
+SDL_Renderer *WindowManager::getRenderer()
+{
     return m_renderer.get();
 }

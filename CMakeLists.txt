@@ -13,11 +13,11 @@ find_package(SDL2_image REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
-
 target_include_directories(${PROJECT_NAME} PUBLIC header/)
 
 target_link_directories(${PROJECT_NAME} PRIVATE header/)
+
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES})
 
 add_subdirectory(source)
 
