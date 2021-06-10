@@ -53,7 +53,7 @@ bool WindowManager::update()
     SDL_RenderPresent(getRenderer());
     if (m_bkg != nullptr)
     {
-        if (draw(m_bkg.get(), nullptr, nullptr) != 0)
+        if (draw(m_bkg, nullptr, nullptr) != 0)
         {
             std::cout << SDL_GetError() << std::endl;
         }
@@ -70,10 +70,14 @@ type::Vector2i WindowManager::getMonitorSize()
 
 void WindowManager::setBackground(SDL_Texture *background)
 {
-    m_bkg.reset(background);
+    m_bkg = background;
 }
 
 SDL_Renderer *WindowManager::getRenderer()
 {
     return m_renderer.get();
+}
+WindowManager::~WindowManager()
+{
+    SDL_DestroyTexture(m_bkg);
 }

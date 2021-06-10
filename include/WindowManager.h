@@ -28,7 +28,7 @@ class WindowManager
 {
     std::unique_ptr<SDL_Window, SDLDeleter> m_window;
     std::unique_ptr<SDL_Renderer, SDLDeleter> m_renderer;
-    std::unique_ptr<SDL_Texture, SDLDeleter> m_bkg;
+    SDL_Texture *m_bkg;
 
     SDL_Event m_event{};
     type::Vector2i m_size;
@@ -45,6 +45,7 @@ public:
     int draw(SDL_Texture *txt, const SDL_Rect *src, const SDL_Rect *dst);
     bool update();
     WindowManager(std::string windowName, type::Vector2i p_pos, Uint32 p_flag);
+    ~WindowManager();
 };
 
 #endif //BOXING2D_2_WINDOWMANAGER_H
