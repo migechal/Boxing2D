@@ -4,11 +4,11 @@
 
 #ifndef BOXING2D_2_PLAYER_H
 #define BOXING2D_2_PLAYER_H
-#include <stdio.h>
 #include <SDL2/SDL.h>
 #include <vector>
 #include <string>
 #include "Types.h"
+#include "WindowManager.h"
 
 enum PlayerStatus{
     IDLE = 0,
@@ -18,12 +18,21 @@ enum PlayerStatus{
 };
 
 class Player {
-    std::vector<SDL_Texture*> m_textures[4];
-    size_t m_health, m_damage, m_status;
+    std::vector<SDL_Texture *> m_textures[4];
+    size_t m_health, m_damage, m_status, m_statusCounter{};
     std::string m_color;
-    type::Sprite sprite;
+    type::Sprite *m_sprite{};
+    WindowManager *m_windowManager;
+
+    static std::string playerStatusToString(int status);
+
+    void draw();
+
+
 public:
-    Player(std::string p_color);
+    Player(std::string p_color, WindowManager *p_windowManager);
+
+    void update();
 };
 
 
