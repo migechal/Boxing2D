@@ -6,7 +6,11 @@
 #include <bits/stdc++.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <filesystem>
 
+namespace fs = std::filesystem;
+
+//namespace fs = std::filesystem;
 FileManager *FileManager::m_instance = nullptr;
 
 FileManager *FileManager::getInstance() {
@@ -29,7 +33,7 @@ int FileManager::getFileCountInDirectory(std::string p_path) {
         (void) closedir(dp);
     } else {
         perror("Couldn't open the directory");
-        return -1
+        return -1;
     }
 
     return i;
@@ -38,5 +42,6 @@ int FileManager::getFileCountInDirectory(std::string p_path) {
 std::vector<std::string> FileManager::getFiles(std::string p_path) {
     std::vector<std::string> r_ret;
     for (const auto &entry : fs::directory_iterator(p_path))
-        r_ret.push_back(p_path.path())
+      r_ret.push_back(p_path.path());
+    return r_ret;
 }

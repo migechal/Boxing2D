@@ -6,9 +6,9 @@
 #define BOXING2D_FILEMANAGER_H
 
 #include <vector>
-
+#include <string>
 class FileManager {
-    FileManager *m_instance;
+    static FileManager *m_instance;
 public:
     static FileManager *getInstance();
 
